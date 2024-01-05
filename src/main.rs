@@ -1,5 +1,5 @@
 use fxhash::FxHashMap;
-use std::io::{self, Read};
+use std::io::{Read, stdin};
 
 #[derive(Debug, PartialEq)]
 enum Token {
@@ -197,7 +197,7 @@ fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
             }
             Instruction::Input => {
                 let mut input: [u8; 1] = [0; 1];
-                io::stdin().read_exact(&mut input).unwrap();
+                stdin().read_exact(&mut input).unwrap();
                 memory.insert(pointer, input[0]);
             }
         }
@@ -208,7 +208,7 @@ fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
 }
 
 fn main() {
-    let stdin = io::stdin();
+    let stdin = stdin();
 
     let mut input = String::new();
     stdin.read_line(&mut input).unwrap();
