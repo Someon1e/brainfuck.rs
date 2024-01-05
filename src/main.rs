@@ -1,5 +1,7 @@
 use fxhash::FxHashMap;
-use std::io::{Read, stdin};
+use std::env;
+use std::fs::File;
+use std::io::{stdin, Read};
 
 #[derive(Debug, PartialEq)]
 enum Token {
@@ -171,37 +173,47 @@ fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
         match instruction {
             Instruction::Move(offset) => {
                 pointer += offset;
+                instruction_index += 1
             }
             Instruction::Increment(increment) => {
                 let cell = memory.entry(pointer).or_insert(0);
                 *cell += increment;
+                instruction_index += 1
             }
             Instruction::Decrement(decrement) => {
                 let cell = memory.entry(pointer).or_insert(0);
                 *cell -= decrement;
+                instruction_index += 1
             }
             Instruction::LoopStart(loop_end) => {
                 let cell = *memory.get(&pointer).unwrap_or(&0);
                 if cell == 0 {
                     instruction_index = *loop_end
+                } else {
+                    instruction_index += 1
                 }
             }
             Instruction::LoopEnd(loop_start) => {
                 let cell = *memory.get(&pointer).unwrap_or(&0);
                 if cell != 0 {
                     instruction_index = *loop_start
+                } else {
+                    instruction_index += 1
                 }
             }
             Instruction::Output => {
-                println!("{}", *memory.get(&pointer).unwrap_or(&0) as char)
+                print!("{}", *memory.get(&pointer).unwrap_or(&0) as char);
+
+                instruction_index += 1
             }
             Instruction::Input => {
                 let mut input: [u8; 1] = [0; 1];
                 stdin().read_exact(&mut input).unwrap();
                 memory.insert(pointer, input[0]);
+
+                instruction_index += 1
             }
         }
-        instruction_index += 1
     }
 
     memory
@@ -211,13 +223,20 @@ fn main() {
     let stdin = stdin();
 
     let mut input = String::new();
-    stdin.read_line(&mut input).unwrap();
+
+    let args: Vec<String> = env::args().collect();
+    if args.len() == 1 {
+        stdin.read_line(&mut input).unwrap();
+    } else {
+        let mut file = File::open(&args[1]).unwrap();
+        file.read_to_string(&mut input).unwrap();
+    }
 
     let lexed = lex(&input);
-    println!("{:#?}", lexed);
+    //println!("{:#?}", lexed);
 
     let compiled = compile(&lexed);
-    println!("{:#?}", compiled);
+    //println!("{:#?}", compiled);
 
     execute(compiled);
 }
