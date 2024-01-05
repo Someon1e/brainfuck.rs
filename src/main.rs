@@ -197,7 +197,8 @@ fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
             }
             Instruction::Input => {
                 let mut input: [u8; 1] = [0; 1];
-                std::io::stdin().read_exact(&mut input).unwrap();
+                io::stdin().read_exact(&mut input).unwrap();
+                memory.insert(pointer, input[0]);
             }
         }
         instruction_index += 1
