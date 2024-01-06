@@ -49,6 +49,7 @@ enum Instruction {
 
     DecrementLoop(u8),
     IncrementLoop(u8),
+    MoveLoop(isize),
 
     LoopStart(usize),
     LoopEnd(usize),
@@ -163,6 +164,10 @@ fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                                         Instruction::IncrementLoop(*increment);
                                     instructions.remove(loop_start + 1);
                                 }
+                                Instruction::Move(offset) => {
+                                    instructions[loop_start] = Instruction::MoveLoop(*offset);
+                                    instructions.remove(loop_start + 1);
+                                }
                                 _ => {
                                     instructions.push(Instruction::LoopEnd(loop_start));
                                     instructions[loop_start] = Instruction::LoopStart(loop_end);
@@ -233,6 +238,12 @@ fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
                         panic!("Infinite loop detected")
                     }
                 });
+                instruction_index += 1
+            }
+            Instruction::MoveLoop(offset) => {
+                while *memory.get(&pointer).unwrap_or(&0) != 0 {
+                    pointer += offset;
+                }
                 instruction_index += 1
             }
             Instruction::LoopStart(loop_end) => {
