@@ -1,13 +1,18 @@
-use std::env;
+use std::{env, fs};
 use std::fs::File;
 use std::io::{stdin, Read};
 
 mod compile;
 use compile::compile;
+
 mod lexer;
 use lexer::lex;
+
 mod interpreter;
 use interpreter::execute;
+
+mod into_rust;
+use into_rust::to_rust;
 
 fn main() {
     let stdin = stdin();
@@ -29,6 +34,11 @@ fn main() {
     let compiled = compile(&lexed);
     //println!("{:#?}", compiled);
 
-    execute(compiled);
+    if false {
+        execute(compiled);
+    } else {
+        fs::write("output.rs", to_rust(compiled)).unwrap();
+    }
+
     println!("Elapsed time: {:.2?}", before.elapsed());
 }
