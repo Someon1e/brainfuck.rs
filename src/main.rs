@@ -47,6 +47,9 @@ enum Instruction {
     Increment(u8),
     Decrement(u8),
 
+    DecrementLoop(u8),
+    IncrementLoop(u8),
+
     LoopStart(usize),
     LoopEnd(usize),
 
@@ -142,9 +145,33 @@ fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                         instructions.push(Instruction::LoopStart(0)) // temp 0
                     }
                     Token::LoopEnd => {
-                        let loop_start = loop_stack.pop().unwrap();
-                        instructions.push(Instruction::LoopEnd(loop_start));
-                        instructions[loop_start] = Instruction::LoopStart(instructions.len())
+                        let loop_start = loop_stack.pop().unwrap(); // Index it should jump to in order to restart the loop
+                        let loop_end = instructions.len(); // Index it should jump to in order to skip the loop
+
+                        if loop_end - loop_start - 1 == 1 {
+                            // Only one type of instruction there
+                            let looped_instruction = &instructions[loop_start + 1];
+                            match looped_instruction {
+                                Instruction::Decrement(decrement) => {
+                                    instructions[loop_start] =
+                                        Instruction::DecrementLoop(*decrement);
+
+                                    instructions.remove(loop_start + 1);
+                                }
+                                Instruction::Increment(increment) => {
+                                    instructions[loop_start] =
+                                        Instruction::IncrementLoop(*increment);
+                                    instructions.remove(loop_start + 1);
+                                }
+                                _ => {
+                                    instructions.push(Instruction::LoopEnd(loop_start));
+                                    instructions[loop_start] = Instruction::LoopStart(loop_end);
+                                }
+                            }
+                        } else {
+                            instructions.push(Instruction::LoopEnd(loop_start));
+                            instructions[loop_start] = Instruction::LoopStart(loop_end);
+                        }
                     }
                     Token::Input => instructions.push(Instruction::Input),
                     Token::Output => instructions.push(Instruction::Output),
@@ -186,6 +213,26 @@ fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
                     .entry(pointer)
                     .and_modify(|cell| *cell -= decrement)
                     .or_insert(0 - *decrement);
+                instruction_index += 1
+            }
+            Instruction::DecrementLoop(decrement) => {
+                memory.entry(pointer).and_modify(|cell| {
+                    if *cell % *decrement == 0 {
+                        *cell = 0
+                    } else {
+                        panic!("Infinite loop detected")
+                    }
+                });
+                instruction_index += 1
+            }
+            Instruction::IncrementLoop(increment) => {
+                memory.entry(pointer).and_modify(|cell| {
+                    if *cell % *increment == 0 {
+                        *cell = 0
+                    } else {
+                        panic!("Infinite loop detected")
+                    }
+                });
                 instruction_index += 1
             }
             Instruction::LoopStart(loop_end) => {
