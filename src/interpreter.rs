@@ -1,9 +1,7 @@
-use rustc_hash::FxHashMap;
-
 use crate::compile::Instruction;
 use std::io::{stdin, Read};
-pub fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
-    let mut memory: FxHashMap<isize, u8> = FxHashMap::default();
+pub fn execute(instructions: Vec<Instruction>) -> Vec<u8> {
+    let mut memory: Vec<u8> = vec![0; 100];
     let mut pointer: isize = 0;
 
     let mut instruction_index = 0;
@@ -12,50 +10,48 @@ pub fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
         match instruction {
             Instruction::Move(offset) => {
                 pointer += offset;
-                instruction_index += 1
+                if pointer as usize >= memory.len() {
+                    memory.resize(memory.len() + *offset as usize, 0)
+                }
+                instruction_index += 1;
             }
             Instruction::Increment(increment) => {
-                memory
-                    .entry(pointer)
-                    .and_modify(|cell| *cell += increment)
-                    .or_insert(*increment);
+                memory[pointer as usize] += increment;
                 instruction_index += 1
             }
             Instruction::Decrement(decrement) => {
-                memory
-                    .entry(pointer)
-                    .and_modify(|cell| *cell -= decrement)
-                    .or_insert(0 - *decrement);
+                memory[pointer as usize] -= decrement;
                 instruction_index += 1
             }
             Instruction::DecrementLoop(decrement) => {
-                memory.entry(pointer).and_modify(|cell| {
-                    if *cell % *decrement == 0 {
-                        *cell = 0
-                    } else {
-                        panic!("Infinite loop detected")
-                    }
-                });
+                let cell = unsafe { memory.get_unchecked_mut(pointer as usize) };
+                if *cell % *decrement == 0 {
+                    *cell = 0
+                } else {
+                    panic!("Infinite loop detected")
+                }
                 instruction_index += 1
             }
             Instruction::IncrementLoop(increment) => {
-                memory.entry(pointer).and_modify(|cell| {
-                    if *cell % *increment == 0 {
-                        *cell = 0
-                    } else {
-                        panic!("Infinite loop detected")
-                    }
-                });
+                let cell = unsafe { memory.get_unchecked_mut(pointer as usize) };
+                if *cell % *increment == 0 {
+                    *cell = 0
+                } else {
+                    panic!("Infinite loop detected")
+                }
                 instruction_index += 1
             }
             Instruction::MoveLoop(offset) => {
-                while *memory.get(&pointer).unwrap_or(&0) != 0 {
+                while unsafe { *memory.get_unchecked(pointer as usize) } != 0 {
                     pointer += offset;
+                    if pointer as usize >= memory.len() {
+                        memory.resize(memory.len() + *offset as usize, 0)
+                    }
                 }
                 instruction_index += 1
             }
             Instruction::LoopStart(loop_end) => {
-                let cell = *memory.get(&pointer).unwrap_or(&0);
+                let cell = unsafe { *memory.get_unchecked(pointer as usize) };
                 if cell == 0 {
                     instruction_index = *loop_end
                 } else {
@@ -63,7 +59,7 @@ pub fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
                 }
             }
             Instruction::LoopEnd(loop_start) => {
-                let cell = *memory.get(&pointer).unwrap_or(&0);
+                let cell = unsafe { *memory.get_unchecked(pointer as usize) };
                 if cell != 0 {
                     instruction_index = *loop_start
                 } else {
@@ -71,14 +67,15 @@ pub fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
                 }
             }
             Instruction::Output => {
-                print!("{}", *memory.get(&pointer).unwrap_or(&0) as char);
+                print!("{}", unsafe { *memory.get_unchecked(pointer as usize) }
+                    as char);
 
                 instruction_index += 1
             }
             Instruction::Input => {
                 let mut input: [u8; 1] = [0; 1];
                 stdin().read_exact(&mut input).unwrap();
-                memory.insert(pointer, input[0]);
+                *memory.get_mut(pointer as usize).unwrap() = input[0];
 
                 instruction_index += 1
             }
