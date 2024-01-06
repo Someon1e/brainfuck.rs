@@ -35,7 +35,11 @@ pub fn to_rust(instructions: Vec<Instruction>) -> String {
                 format!("if cell % {increment} == 0 {{cell = 0}} else {{panic!(\"Infinite loop detected\")}}").to_owned()
             }
             Instruction::MoveLoop(offset) => {
-                format!("cell += {offset};").to_owned()
+                if offset.is_positive() {
+                    format!("while *memory.get(&pointer).unwrap_or(&0) != 0 {{\npointer += {offset};\n}}").to_owned()
+                } else {
+                    format!("while *memory.get(&pointer).unwrap_or(&0) != 0 {{\npointer -= {};\n}}", offset.abs()).to_owned()
+                }
             }
             Instruction::LoopStart(loop_end) => {
                 format!("while cell != 0 {{").to_owned()
