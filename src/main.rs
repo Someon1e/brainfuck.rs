@@ -175,11 +175,17 @@ fn execute(instructions: Vec<Instruction>) -> FxHashMap<isize, u8> {
                 instruction_index += 1
             }
             Instruction::Increment(increment) => {
-                memory.entry(pointer).and_modify(|cell| *cell += increment).or_insert(*increment);
+                memory
+                    .entry(pointer)
+                    .and_modify(|cell| *cell += increment)
+                    .or_insert(*increment);
                 instruction_index += 1
             }
             Instruction::Decrement(decrement) => {
-                memory.entry(pointer).and_modify(|cell| *cell -= decrement).or_insert(0 - *decrement);
+                memory
+                    .entry(pointer)
+                    .and_modify(|cell| *cell -= decrement)
+                    .or_insert(0 - *decrement);
                 instruction_index += 1
             }
             Instruction::LoopStart(loop_end) => {
@@ -228,7 +234,7 @@ fn main() {
         let mut file = File::open(&args[1]).unwrap();
         file.read_to_string(&mut input).unwrap();
     }
-    
+
     let before = std::time::Instant::now();
     let lexed = lex(&input);
     //println!("{:#?}", lexed);
