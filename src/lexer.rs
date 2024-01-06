@@ -14,7 +14,7 @@ pub enum Token {
     Comment,
 }
 
-pub fn lex(input: &String) -> Vec<Token> {
+pub fn lex(input: &str) -> Vec<Token> {
     let mut tokens = vec![];
     for character in input.chars() {
         tokens.push(match character {
@@ -32,5 +32,5 @@ pub fn lex(input: &String) -> Vec<Token> {
             _ => Token::Comment,
         });
     }
-    return tokens;
+    tokens
 }

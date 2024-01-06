@@ -43,17 +43,17 @@ panic!(\"Infinite loop detected\")
                     format!("while *memory.get(&pointer).unwrap_or(&0) != 0 {{\npointer -= {};\n}}", offset.abs()).to_owned()
                 }
             }
-            Instruction::LoopStart(loop_end) => {
-                format!("while *memory.get(&pointer).unwrap_or(&0) != 0 {{").to_owned()
+            Instruction::LoopStart(_loop_end) => {
+                "while *memory.get(&pointer).unwrap_or(&0) != 0 {{".to_owned()
             }
-            Instruction::LoopEnd(loop_start) => {
-                format!("}}").to_owned()
+            Instruction::LoopEnd(_loop_start) => {
+                "}}".to_owned()
             }
             Instruction::Output => {
-                format!("print!(\"{{}}\", *memory.get(&pointer).unwrap_or(&0) as char);").to_owned()
+                "print!(\"{{}}\", *memory.get(&pointer).unwrap_or(&0) as char);".to_owned()
             }
             Instruction::Input => {
-                format!("").to_owned()
+                unimplemented!()
             }
         })
     }
