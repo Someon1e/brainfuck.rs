@@ -77,7 +77,6 @@ fn push_compiling_instruction(
     }
 }
 fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
-    // Merge increment and decrement instruction
     let mut instructions: Vec<Instruction> = vec![];
 
     let mut value: isize = 0;
