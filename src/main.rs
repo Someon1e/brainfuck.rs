@@ -34,7 +34,7 @@ fn main() {
     let compiled = compile(&lexed);
     //println!("{:#?}", compiled);
 
-    if false {
+    if true {
         execute(compiled);
     } else {
         fs::write("output.rs", to_rust(compiled)).unwrap();
