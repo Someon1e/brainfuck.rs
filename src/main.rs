@@ -1,4 +1,4 @@
-use fxhash::FxHashMap;
+use rustc_hash::FxHashMap;
 use std::env;
 use std::fs::File;
 use std::io::{stdin, Read};
