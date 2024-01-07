@@ -3,54 +3,73 @@ use crate::compile::Instruction;
 pub fn to_rust(instructions: Vec<Instruction>) -> String {
     let mut code = vec![
         String::from("let mut pointer: isize = 0;"),
-        String::from("let mut memory: rustc_hash::FxHashMap<isize, u8> = rustc_hash::FxHashMap::default();"),
+        String::from("let mut memory: Vec<u8> = vec![0; 100];"),
     ];
 
     for instruction in instructions {
         code.push(match instruction {
             Instruction::Move(offset) => {
-                format!("pointer += {offset};").to_owned()
+                if offset.is_positive() {
+                format!(
+"pointer += {offset};
+if pointer as usize >= memory.len() {{
+memory.resize(memory.len() + {offset} as usize, 0)
+}}").to_owned()
+                } else {
+                format!(
+"pointer -= {0};
+if pointer as usize >= memory.len() {{
+memory.resize(memory.len() + {0} as usize, 0)
+}}", offset.abs()).to_owned()
+                }
             }
             Instruction::Increment(increment) => {
-                format!("memory.entry(pointer).and_modify(|value| *value += {increment}).or_insert({increment});").to_owned()
+                format!("memory[pointer as usize] += {increment};").to_owned()
             }
             Instruction::Decrement(decrement) => {
-                format!("memory.entry(pointer).and_modify(|value| *value -= {decrement}).or_insert({});", 0u8.wrapping_sub(decrement)).to_owned()
+                format!("memory[pointer as usize] -= {decrement};").to_owned()
             }
             Instruction::DecrementLoop(decrement) => {
                 format!(
-"memory.entry(pointer).and_modify(|cell| {{
+"let cell = unsafe {{ memory.get_unchecked_mut(pointer as usize) }};
 if *cell % {decrement} == 0 {{
 *cell = 0
 }} else {{
 panic!(\"Infinite loop detected\")
-}}
-}});").to_owned()}
+}}").to_owned()}
             Instruction::IncrementLoop(increment) => {
                 format!(
-"memory.entry(pointer).and_modify(|cell| {{
+"let cell = unsafe {{ memory.get_unchecked_mut(pointer as usize) }};
 if *cell % {increment} == 0 {{
 *cell = 0
 }} else {{
 panic!(\"Infinite loop detected\")
-}}
-}});").to_owned()     
+}}").to_owned()     
             }
             Instruction::MoveLoop(offset) => {
                 if offset.is_positive() {
-                    format!("while *memory.get(&pointer).unwrap_or(&0) != 0 {{\npointer += {offset};\n}}").to_owned()
-                } else {
-                    format!("while *memory.get(&pointer).unwrap_or(&0) != 0 {{\npointer -= {};\n}}", offset.abs()).to_owned()
+                    format!(
+"while unsafe {{ *memory.get_unchecked(pointer as usize) }} != 0 {{
+pointer += {offset};
+if pointer as usize >= memory.len() {{
+memory.resize(memory.len() + {offset} as usize, 0)
+}}
+}}").to_owned()
+                    } else {
+                    format!(
+"while unsafe {{ *memory.get_unchecked(pointer as usize) }} != 0 {{
+pointer -= {};
+}}", offset.abs()).to_owned()
                 }
             }
             Instruction::LoopStart(_loop_end) => {
-                "while *memory.get(&pointer).unwrap_or(&0) != 0 {{".to_owned()
+                r#"while unsafe { *memory.get_unchecked(pointer as usize) } != 0 {"#.to_owned()
             }
             Instruction::LoopEnd(_loop_start) => {
-                "}}".to_owned()
+                r#"}"#.to_owned()
             }
             Instruction::Output => {
-                "print!(\"{{}}\", *memory.get(&pointer).unwrap_or(&0) as char);".to_owned()
+                r#"print!("{}", unsafe { *memory.get_unchecked(pointer as usize) } as char);"#.to_owned()
             }
             Instruction::Input => {
                 unimplemented!()
