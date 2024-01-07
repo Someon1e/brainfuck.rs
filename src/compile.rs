@@ -79,12 +79,17 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
             }
             Token::Decrement => {
                 if compiling_instruction != CompilingInstruction::Decrement {
-                    push_compiling_instruction(&mut instructions, &mut compiling_instruction, &mut value);
+                    push_compiling_instruction(
+                        &mut instructions,
+                        &mut compiling_instruction,
+                        &mut value,
+                    );
                     compiling_instruction = CompilingInstruction::Decrement;
                 }
                 value += 1;
                 continue;
             }
+            Token::Comment => continue,
             _ => {}
         }
 
@@ -131,7 +136,6 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
             }
             Token::Input => instructions.push(Instruction::Input),
             Token::Output => instructions.push(Instruction::Output),
-            Token::Comment => {}
             _ => unreachable!(),
         }
     }
