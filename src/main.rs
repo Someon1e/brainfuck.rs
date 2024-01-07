@@ -27,12 +27,13 @@ fn main() {
 
     let before = std::time::Instant::now();
     let lexed = lex(&input);
+
     //println!("{:#?}", lexed);
 
     let compiled = compile(&lexed);
     //println!("{:#?}", compiled);
 
-    if false {
+    if false { // TODO: Ask user
         execute(compiled);
     } else {
         fs::write("output.rs", to_rust(compiled)).unwrap();

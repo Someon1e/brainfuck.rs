@@ -1,9 +1,10 @@
 #[derive(Debug, PartialEq)]
 pub enum Token {
-    Forward,
-    Backward,
     Increment,
     Decrement,
+
+    Forward,
+    Backward,
 
     LoopStart,
     LoopEnd,
@@ -15,14 +16,14 @@ pub enum Token {
 }
 
 pub fn lex(input: &str) -> Vec<Token> {
-    let mut tokens = vec![];
+    let mut tokens = Vec::with_capacity(input.len());
     for character in input.chars() {
         tokens.push(match character {
-            '>' => Token::Forward,
-            '<' => Token::Backward,
-
             '+' => Token::Increment,
             '-' => Token::Decrement,
+
+            '>' => Token::Forward,
+            '<' => Token::Backward,
 
             '[' => Token::LoopStart,
             ']' => Token::LoopEnd,
