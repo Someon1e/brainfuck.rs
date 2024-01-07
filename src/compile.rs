@@ -37,7 +37,7 @@ fn push_compiling_instruction(
             CompilingInstruction::Move => Instruction::Move(*value),
             CompilingInstruction::Increment => Instruction::Increment(*value as u8),
             CompilingInstruction::Decrement => Instruction::Decrement(*value as u8),
-            CompilingInstruction::None => unreachable!()
+            CompilingInstruction::None => unreachable!(),
         });
         *compiling_instruction = CompilingInstruction::None;
         *value = 0
@@ -53,7 +53,7 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
 
     for token in tokens {
         match token {
-            Token::Forward => {
+            Token::Forward | Token::Backward => {
                 if compiling_instruction != CompilingInstruction::Move {
                     push_compiling_instruction(
                         &mut instructions,
@@ -62,18 +62,8 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                     );
                     compiling_instruction = CompilingInstruction::Move;
                 }
-                value += 1
-            }
-            Token::Backward => {
-                if compiling_instruction != CompilingInstruction::Move {
-                    push_compiling_instruction(
-                        &mut instructions,
-                        &mut compiling_instruction,
-                        &mut value,
-                    );
-                    compiling_instruction = CompilingInstruction::Move;
-                }
-                value -= 1
+                value += if let Token::Forward = token { 1 } else { -1 };
+                continue;
             }
             Token::Increment => {
                 if compiling_instruction != CompilingInstruction::Increment {
@@ -84,7 +74,8 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                     );
                     compiling_instruction = CompilingInstruction::Increment;
                 }
-                value += 1
+                value += 1;
+                continue;
             }
             Token::Decrement => {
                 if compiling_instruction != CompilingInstruction::Decrement {
@@ -95,58 +86,54 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                     );
                     compiling_instruction = CompilingInstruction::Decrement;
                 }
-                value += 1
+                value += 1;
+                continue;
             }
-            _ => {
-                push_compiling_instruction(
-                    &mut instructions,
-                    &mut compiling_instruction,
-                    &mut value,
-                );
-                match token {
-                    Token::LoopStart => {
-                        loop_stack.push(instructions.len());
-                        instructions.push(Instruction::LoopStart(0)) // temp 0
-                    }
-                    Token::LoopEnd => {
-                        let loop_start = loop_stack.pop().unwrap(); // Index it should jump to in order to restart the loop
-                        let loop_end = instructions.len(); // Index it should jump to in order to skip the loop
+            _ => {}
+        }
 
-                        if loop_end - loop_start - 1 == 1 {
-                            // Only one type of instruction there
-                            let looped_instruction = &instructions[loop_start + 1];
-                            match looped_instruction {
-                                Instruction::Decrement(decrement) => {
-                                    instructions[loop_start] =
-                                        Instruction::DecrementLoop(*decrement);
+        push_compiling_instruction(&mut instructions, &mut compiling_instruction, &mut value);
+        match token {
+            Token::LoopStart => {
+                loop_stack.push(instructions.len());
+                instructions.push(Instruction::LoopStart(0)) // temp 0
+            }
+            Token::LoopEnd => {
+                let loop_start = loop_stack.pop().unwrap(); // Index it should jump to in order to restart the loop
+                let loop_end = instructions.len(); // Index it should jump to in order to skip the loop
 
-                                    instructions.remove(loop_start + 1);
-                                }
-                                Instruction::Increment(increment) => {
-                                    instructions[loop_start] =
-                                        Instruction::IncrementLoop(*increment);
-                                    instructions.remove(loop_start + 1);
-                                }
-                                Instruction::Move(offset) => {
-                                    instructions[loop_start] = Instruction::MoveLoop(*offset);
-                                    instructions.remove(loop_start + 1);
-                                }
-                                _ => {
-                                    instructions.push(Instruction::LoopEnd(loop_start));
-                                    instructions[loop_start] = Instruction::LoopStart(loop_end);
-                                }
-                            }
-                        } else {
+                if loop_end - loop_start - 1 == 1 {
+                    // Only one type of instruction there
+                    let looped_instruction = &instructions[loop_start + 1];
+
+                    match looped_instruction {
+                        Instruction::Decrement(decrement) => {
+                            instructions[loop_start] = Instruction::DecrementLoop(*decrement);
+
+                            instructions.remove(loop_start + 1);
+                        }
+                        Instruction::Increment(increment) => {
+                            instructions[loop_start] = Instruction::IncrementLoop(*increment);
+                            instructions.remove(loop_start + 1);
+                        }
+                        Instruction::Move(offset) => {
+                            instructions[loop_start] = Instruction::MoveLoop(*offset);
+                            instructions.remove(loop_start + 1);
+                        }
+                        _ => {
                             instructions.push(Instruction::LoopEnd(loop_start));
                             instructions[loop_start] = Instruction::LoopStart(loop_end);
                         }
                     }
-                    Token::Input => instructions.push(Instruction::Input),
-                    Token::Output => instructions.push(Instruction::Output),
-                    Token::Comment => {}
-                    _ => unreachable!(),
+                } else {
+                    instructions.push(Instruction::LoopEnd(loop_start));
+                    instructions[loop_start] = Instruction::LoopStart(loop_end);
                 }
             }
+            Token::Input => instructions.push(Instruction::Input),
+            Token::Output => instructions.push(Instruction::Output),
+            Token::Comment => {}
+            _ => unreachable!(),
         }
     }
 
