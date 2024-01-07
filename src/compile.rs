@@ -102,33 +102,36 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                 let loop_start = loop_stack.pop().unwrap(); // Index it should jump to in order to restart the loop
                 let loop_end = instructions.len(); // Index it should jump to in order to skip the loop
 
+                let replacement;
                 if loop_end - loop_start - 1 == 1 {
                     // Only one type of instruction there
-                    let looped_instruction = &instructions[loop_start + 1];
-
-                    match looped_instruction {
+                    replacement = match instructions[loop_start + 1] {
                         Instruction::Decrement(decrement) => {
-                            instructions[loop_start] = Instruction::DecrementLoop(*decrement);
-
                             instructions.remove(loop_start + 1);
+
+                            Instruction::DecrementLoop(decrement)
                         }
                         Instruction::Increment(increment) => {
-                            instructions[loop_start] = Instruction::IncrementLoop(*increment);
                             instructions.remove(loop_start + 1);
+
+                            Instruction::IncrementLoop(increment)
                         }
                         Instruction::Move(offset) => {
-                            instructions[loop_start] = Instruction::MoveLoop(*offset);
                             instructions.remove(loop_start + 1);
+
+                            Instruction::MoveLoop(offset)
                         }
                         _ => {
                             instructions.push(Instruction::LoopEnd(loop_start));
-                            instructions[loop_start] = Instruction::LoopStart(loop_end);
+
+                            Instruction::LoopStart(loop_end)
                         }
                     }
                 } else {
-                    instructions.push(Instruction::LoopEnd(loop_start));
-                    instructions[loop_start] = Instruction::LoopStart(loop_end);
+                    replacement = Instruction::LoopStart(loop_end)
                 }
+                instructions.push(Instruction::LoopEnd(loop_start));
+                instructions[loop_start] = replacement;
             }
             Token::Input => instructions.push(Instruction::Input),
             Token::Output => instructions.push(Instruction::Output),
