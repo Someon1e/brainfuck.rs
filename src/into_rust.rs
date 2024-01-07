@@ -3,7 +3,7 @@ use crate::compile::Instruction;
 pub fn to_rust(instructions: Vec<Instruction>) -> String {
     let mut code = vec![
         String::from("let mut pointer: isize = 0;"),
-        String::from("let mut memory: Vec<u8> = vec![0; 100];"),
+        String::from("let mut memory: Vec<u8> = vec![0; 50];"),
     ];
 
     for instruction in instructions {
@@ -13,14 +13,10 @@ pub fn to_rust(instructions: Vec<Instruction>) -> String {
                 format!(
 "pointer += {offset};
 if pointer as usize >= memory.len() {{
-memory.resize(memory.len() + {offset} as usize, 0)
+memory.resize(pointer as usize + 10, 0)
 }}")
                 } else {
-                format!(
-"pointer -= {0};
-if pointer as usize >= memory.len() {{
-memory.resize(memory.len() + {0} as usize, 0)
-}}", offset.abs())
+                    format!("pointer -= {};", offset.abs())
                 }
             }
             Instruction::Increment(increment) => {
@@ -52,7 +48,7 @@ panic!(\"Infinite loop detected\")
 "while unsafe {{ *memory.get_unchecked(pointer as usize) }} != 0 {{
 pointer += {offset};
 if pointer as usize >= memory.len() {{
-memory.resize(memory.len() + {offset} as usize, 0)
+memory.resize(pointer as usize + 10, 0)
 }}
 }}")
                     } else {

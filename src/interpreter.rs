@@ -1,7 +1,7 @@
 use crate::compile::Instruction;
 use std::io::{stdin, Read};
 pub fn execute(instructions: Vec<Instruction>) -> Vec<u8> {
-    let mut memory: Vec<u8> = vec![0; 100];
+    let mut memory: Vec<u8> = vec![0; 50];
     let mut pointer: isize = 0;
 
     let mut instruction_index = 0;
@@ -10,7 +10,7 @@ pub fn execute(instructions: Vec<Instruction>) -> Vec<u8> {
             Instruction::Move(offset) => {
                 pointer += offset;
                 if pointer as usize >= memory.len() {
-                    memory.resize(pointer as usize + 1, 0)
+                    memory.resize(pointer as usize + 10, 0)
                 }
             }
             Instruction::Increment(increment) => memory[pointer as usize] += increment,
@@ -36,7 +36,7 @@ pub fn execute(instructions: Vec<Instruction>) -> Vec<u8> {
                 while unsafe { *memory.get_unchecked(pointer as usize) } != 0 {
                     pointer += offset;
                     if pointer as usize >= memory.len() {
-                        memory.resize(pointer as usize + 1, 0)
+                        memory.resize(pointer as usize + 10, 0)
                     }
                 }
             }
