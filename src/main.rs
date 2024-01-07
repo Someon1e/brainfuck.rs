@@ -1,6 +1,5 @@
+use std::io::stdin;
 use std::{env, fs};
-use std::fs::File;
-use std::io::{stdin, Read};
 
 mod compile;
 use compile::compile;
@@ -16,16 +15,15 @@ use into_rust::to_rust;
 
 fn main() {
     let stdin = stdin();
-
-    let mut input = String::new();
-
     let args: Vec<String> = env::args().collect();
-    if args.len() == 1 {
+
+    let input = if args.len() == 1 {
+        let mut input = String::new();
         stdin.read_line(&mut input).unwrap();
+        input
     } else {
-        let mut file = File::open(&args[1]).unwrap();
-        file.read_to_string(&mut input).unwrap();
-    }
+        fs::read_to_string(&args[1]).unwrap()
+    };
 
     let before = std::time::Instant::now();
     let lexed = lex(&input);
