@@ -27,7 +27,7 @@ enum CompilingInstruction {
 
 fn push_compiling_instruction(
     instructions: &mut Vec<Instruction>,
-    compiling_instruction: &mut Option<&CompilingInstruction>,
+    compiling_instruction: &mut Option<CompilingInstruction>,
     value: &mut isize,
 ) {
     if let Some(unwrapped_compiling_instruction) = compiling_instruction {
@@ -44,53 +44,53 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
     let mut instructions: Vec<Instruction> = vec![];
 
     let mut value: isize = 0;
-    let mut compiling_instruction: Option<&CompilingInstruction> = None;
+    let mut compiling_instruction: Option<CompilingInstruction> = None;
 
     let mut loop_stack = vec![];
 
     for token in tokens {
         match token {
             Token::Forward => {
-                if compiling_instruction != Some(&CompilingInstruction::Move) {
+                if compiling_instruction != Some(CompilingInstruction::Move) {
                     push_compiling_instruction(
                         &mut instructions,
                         &mut compiling_instruction,
                         &mut value,
                     );
-                    compiling_instruction = Some(&CompilingInstruction::Move);
+                    compiling_instruction = Some(CompilingInstruction::Move);
                 }
                 value += 1
             }
             Token::Backward => {
-                if compiling_instruction != Some(&CompilingInstruction::Move) {
+                if compiling_instruction != Some(CompilingInstruction::Move) {
                     push_compiling_instruction(
                         &mut instructions,
                         &mut compiling_instruction,
                         &mut value,
                     );
-                    compiling_instruction = Some(&CompilingInstruction::Move);
+                    compiling_instruction = Some(CompilingInstruction::Move);
                 }
                 value -= 1
             }
             Token::Increment => {
-                if compiling_instruction != Some(&CompilingInstruction::Increment) {
+                if compiling_instruction != Some(CompilingInstruction::Increment) {
                     push_compiling_instruction(
                         &mut instructions,
                         &mut compiling_instruction,
                         &mut value,
                     );
-                    compiling_instruction = Some(&CompilingInstruction::Increment);
+                    compiling_instruction = Some(CompilingInstruction::Increment);
                 }
                 value += 1
             }
             Token::Decrement => {
-                if compiling_instruction != Some(&CompilingInstruction::Decrement) {
+                if compiling_instruction != Some(CompilingInstruction::Decrement) {
                     push_compiling_instruction(
                         &mut instructions,
                         &mut compiling_instruction,
                         &mut value,
                     );
-                    compiling_instruction = Some(&CompilingInstruction::Decrement);
+                    compiling_instruction = Some(CompilingInstruction::Decrement);
                 }
                 value += 1
             }
