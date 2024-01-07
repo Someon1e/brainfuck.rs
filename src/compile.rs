@@ -79,11 +79,7 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
             }
             Token::Decrement => {
                 if compiling_instruction != CompilingInstruction::Decrement {
-                    push_compiling_instruction(
-                        &mut instructions,
-                        &mut compiling_instruction,
-                        &mut value,
-                    );
+                    push_compiling_instruction(&mut instructions, &mut compiling_instruction, &mut value);
                     compiling_instruction = CompilingInstruction::Decrement;
                 }
                 value += 1;
@@ -128,9 +124,9 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                         }
                     }
                 } else {
+                    instructions.push(Instruction::LoopEnd(loop_start));
                     replacement = Instruction::LoopStart(loop_end)
                 }
-                instructions.push(Instruction::LoopEnd(loop_start));
                 instructions[loop_start] = replacement;
             }
             Token::Input => instructions.push(Instruction::Input),
