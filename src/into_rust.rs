@@ -14,20 +14,20 @@ pub fn to_rust(instructions: Vec<Instruction>) -> String {
 "pointer += {offset};
 if pointer as usize >= memory.len() {{
 memory.resize(memory.len() + {offset} as usize, 0)
-}}").to_owned()
+}}")
                 } else {
                 format!(
 "pointer -= {0};
 if pointer as usize >= memory.len() {{
 memory.resize(memory.len() + {0} as usize, 0)
-}}", offset.abs()).to_owned()
+}}", offset.abs())
                 }
             }
             Instruction::Increment(increment) => {
-                format!("memory[pointer as usize] += {increment};").to_owned()
+                format!("memory[pointer as usize] += {increment};")
             }
             Instruction::Decrement(decrement) => {
-                format!("memory[pointer as usize] -= {decrement};").to_owned()
+                format!("memory[pointer as usize] -= {decrement};")
             }
             Instruction::DecrementLoop(decrement) => {
                 format!(
@@ -36,7 +36,7 @@ if *cell % {decrement} == 0 {{
 *cell = 0
 }} else {{
 panic!(\"Infinite loop detected\")
-}}").to_owned()}
+}}")}
             Instruction::IncrementLoop(increment) => {
                 format!(
 "let cell = unsafe {{ memory.get_unchecked_mut(pointer as usize) }};
@@ -44,7 +44,7 @@ if *cell % {increment} == 0 {{
 *cell = 0
 }} else {{
 panic!(\"Infinite loop detected\")
-}}").to_owned()     
+}}")     
             }
             Instruction::MoveLoop(offset) => {
                 if offset.is_positive() {
@@ -54,12 +54,12 @@ pointer += {offset};
 if pointer as usize >= memory.len() {{
 memory.resize(memory.len() + {offset} as usize, 0)
 }}
-}}").to_owned()
+}}")
                     } else {
                     format!(
 "while unsafe {{ *memory.get_unchecked(pointer as usize) }} != 0 {{
 pointer -= {};
-}}", offset.abs()).to_owned()
+}}", offset.abs())
                 }
             }
             Instruction::LoopStart(_loop_end) => {
