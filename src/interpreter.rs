@@ -1,6 +1,8 @@
 use crate::compile::Instruction;
-use std::io::{stdin, Read};
+use std::io::{stdin, stdout, Read, Write};
 pub fn execute(instructions: Vec<Instruction>) -> Vec<u8> {
+    let mut stdout = stdout().lock();
+
     let mut memory: Vec<u8> = vec![0; 50];
     let mut pointer: isize = 0;
 
@@ -54,7 +56,7 @@ pub fn execute(instructions: Vec<Instruction>) -> Vec<u8> {
                     continue;
                 }
             }
-            Instruction::Output => print!("{}", unsafe { *memory.get_unchecked(pointer as usize) } as char),
+            Instruction::Output => write!(stdout, "{}", unsafe { *memory.get_unchecked(pointer as usize) } as char).unwrap(),
             Instruction::Input => {
                 let mut input: [u8; 1] = [0; 1];
                 stdin().read_exact(&mut input).unwrap();
