@@ -1,5 +1,5 @@
-use std::io::stdin;
-use std::{env, fs};
+use std::fs;
+use std::io::{stdin, stdout, StdoutLock, Write};
 
 mod compile;
 use compile::compile;
@@ -13,17 +13,37 @@ use interpreter::execute;
 mod into_rust;
 use into_rust::to_rust;
 
-fn main() {
-    let stdin = stdin();
-    let args: Vec<String> = env::args().collect();
+fn ask(question: &str, stdout: &mut StdoutLock) -> String {
+    write!(stdout, "{question}").unwrap();
+    stdout.flush().unwrap();
 
-    let input = if args.len() == 1 {
-        let mut input = String::new();
-        stdin.read_line(&mut input).unwrap();
-        input
-    } else {
-        fs::read_to_string(&args[1]).unwrap()
-    };
+    let stdin = stdin();
+
+    let mut input = String::new();
+    stdin.read_line(&mut input).unwrap();
+    return input.trim().to_owned();
+}
+
+fn main() {
+    let input;
+    let option;
+    {
+        let mut stdout = stdout().lock();
+
+        let input_type = ask("(A) File directory or (B) text input? ", &mut stdout);
+        if input_type == "A" {
+            input = fs::read_to_string(ask("File directory: ", &mut stdout)).unwrap()
+        } else if input_type == "B" {
+            input = ask("Code: ", &mut stdout)
+        } else {
+            panic!("Invalid input")
+        }
+
+        option = ask("(A) Interpret or (B) transpile into rust? ", &mut stdout);
+        if option != "A" {
+            assert_eq!(option, "B", "Invalid input")
+        };
+    }
 
     let before = std::time::Instant::now();
     let lexed = lex(&input);
@@ -33,7 +53,7 @@ fn main() {
     let compiled = compile(&lexed);
     //println!("{:#?}", compiled);
 
-    if false { // TODO: Ask user
+    if option == "A" {
         execute(compiled);
     } else {
         fs::write("output.rs", to_rust(compiled)).unwrap();
