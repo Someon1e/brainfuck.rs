@@ -69,7 +69,7 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                 value += if let Token::Forward = token { 1 } else { -1 };
                 continue;
             }
-            Token::Increment => {
+            Token::Increment | Token::Decrement => {
                 if compiling_instruction != CompilingInstruction::Increment {
                     push_compiling_instruction(
                         &mut instructions,
@@ -78,19 +78,7 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                     );
                     compiling_instruction = CompilingInstruction::Increment;
                 }
-                value += 1;
-                continue;
-            }
-            Token::Decrement => {
-                if compiling_instruction != CompilingInstruction::Increment {
-                    push_compiling_instruction(
-                        &mut instructions,
-                        &mut compiling_instruction,
-                        &mut value,
-                    );
-                    compiling_instruction = CompilingInstruction::Increment;
-                }
-                value -= 1;
+                value += if let Token::Increment = token { 1 } else { -1 };
                 continue;
             }
             Token::Comment => continue,
