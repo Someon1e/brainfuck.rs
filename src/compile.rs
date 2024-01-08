@@ -40,7 +40,7 @@ fn push_compiling_instruction(
                 } else {
                     Instruction::Decrement(value.abs() as u8)
                 }
-            },
+            }
             CompilingInstruction::None => unreachable!(),
         });
         *compiling_instruction = CompilingInstruction::None;
@@ -95,10 +95,9 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                 let loop_start = loop_stack.pop().unwrap(); // Index it should jump to in order to restart the loop
                 let loop_end = instructions.len(); // Index it should jump to in order to skip the loop
 
-                let replacement;
-                if loop_end - loop_start - 1 == 1 {
+                let replacement = if loop_end - loop_start - 1 == 1 {
                     // Only one type of instruction there
-                    replacement = match instructions[loop_start + 1] {
+                    match instructions[loop_start + 1] {
                         Instruction::Decrement(decrement) => {
                             instructions.remove(loop_start + 1);
 
@@ -122,8 +121,8 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                     }
                 } else {
                     instructions.push(Instruction::LoopEnd(loop_start));
-                    replacement = Instruction::LoopStart(loop_end)
-                }
+                    Instruction::LoopStart(loop_end)
+                };
                 instructions[loop_start] = replacement;
             }
             Token::Input => instructions.push(Instruction::Input),
