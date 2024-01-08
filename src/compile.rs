@@ -22,7 +22,6 @@ pub enum Instruction {
 enum CompilingInstruction {
     Move,
     Increment,
-    Decrement,
 
     None,
 }
@@ -35,8 +34,13 @@ fn push_compiling_instruction(
     if *compiling_instruction != CompilingInstruction::None {
         instructions.push(match compiling_instruction {
             CompilingInstruction::Move => Instruction::Move(*value),
-            CompilingInstruction::Increment => Instruction::Increment(*value as u8),
-            CompilingInstruction::Decrement => Instruction::Decrement(*value as u8),
+            CompilingInstruction::Increment => {
+                if value.is_positive() {
+                    Instruction::Increment(*value as u8)
+                } else {
+                    Instruction::Decrement(value.abs() as u8)
+                }
+            },
             CompilingInstruction::None => unreachable!(),
         });
         *compiling_instruction = CompilingInstruction::None;
@@ -78,15 +82,15 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
                 continue;
             }
             Token::Decrement => {
-                if compiling_instruction != CompilingInstruction::Decrement {
+                if compiling_instruction != CompilingInstruction::Increment {
                     push_compiling_instruction(
                         &mut instructions,
                         &mut compiling_instruction,
                         &mut value,
                     );
-                    compiling_instruction = CompilingInstruction::Decrement;
+                    compiling_instruction = CompilingInstruction::Increment;
                 }
-                value += 1;
+                value -= 1;
                 continue;
             }
             Token::Comment => continue,
@@ -139,6 +143,8 @@ pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
             _ => unreachable!(),
         }
     }
+
+    push_compiling_instruction(&mut instructions, &mut compiling_instruction, &mut value);
 
     if !loop_stack.is_empty() {
         panic!("Unclosed loop");
