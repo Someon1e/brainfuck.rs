@@ -1,4 +1,4 @@
-use crate::lexer::Token;
+use crate::lexer::{Token, Lexer};
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -47,7 +47,7 @@ fn push_compiling_instruction(
         *value = 0
     }
 }
-pub fn compile(tokens: &Vec<Token>) -> Vec<Instruction> {
+pub fn compile(tokens: Lexer) -> Vec<Instruction> {
     let mut instructions: Vec<Instruction> = vec![];
 
     let mut value: isize = 0;

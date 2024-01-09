@@ -5,7 +5,7 @@ mod compile;
 use compile::compile;
 
 mod lexer;
-use lexer::lex;
+use lexer::Lexer;
 
 mod interpreter;
 use interpreter::execute;
@@ -46,11 +46,11 @@ fn main() {
     }
 
     let before = std::time::Instant::now();
-    let lexed = lex(&input);
+    let lexed = Lexer::new(&input);
 
     //println!("{:#?}", lexed);
 
-    let compiled = compile(&lexed);
+    let compiled = compile(lexed);
     //println!("{:#?}", compiled);
 
     if option == "A" {
