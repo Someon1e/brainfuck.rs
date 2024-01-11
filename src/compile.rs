@@ -92,7 +92,7 @@ pub fn compile(tokens: Lexer) -> Vec<Instruction> {
                 instructions.push(Instruction::LoopStart(0)) // temp 0
             }
             Token::LoopEnd => {
-                let loop_start = loop_stack.pop().unwrap(); // Index it should jump to in order to restart the loop
+                let loop_start = loop_stack.pop().expect("loop end without start"); // Index it should jump to in order to restart the loop
                 let loop_end = instructions.len(); // Index it should jump to in order to skip the loop
 
                 let replacement = if loop_end - loop_start - 1 == 1 {
