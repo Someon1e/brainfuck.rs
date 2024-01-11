@@ -21,31 +21,29 @@ pub struct Lexer<'a> {
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
-        Self {chars: input.chars()}
+        Self {
+            chars: input.chars(),
+        }
     }
 }
 
 impl Iterator for Lexer<'_> {
     type Item = Token;
     fn next(&mut self) -> Option<Self::Item> {
-        let character = self.chars.next();
-        if let Some(character) = character {
-            Some(match character {
-                '+' => Token::Increment,
-                '-' => Token::Decrement,
+        let character = self.chars.next()?;
+        Some(match character {
+            '+' => Token::Increment,
+            '-' => Token::Decrement,
 
-                '>' => Token::Forward,
-                '<' => Token::Backward,
+            '>' => Token::Forward,
+            '<' => Token::Backward,
 
-                '[' => Token::LoopStart,
-                ']' => Token::LoopEnd,
+            '[' => Token::LoopStart,
+            ']' => Token::LoopEnd,
 
-                '.' => Token::Output,
-                ',' => Token::Input,
-                _ => Token::Comment,
-            })
-        } else {
-            None
-        }
+            '.' => Token::Output,
+            ',' => Token::Input,
+            _ => Token::Comment,
+        })
     }
 }
