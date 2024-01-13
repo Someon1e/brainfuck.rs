@@ -2,7 +2,7 @@ use std::fs;
 use std::io::{stdin, stdout, StdoutLock, Write};
 
 mod compile;
-use compile::compile;
+use compile::Compiler;
 
 mod lexer;
 use lexer::Lexer;
@@ -50,7 +50,8 @@ fn main() {
 
     //println!("{:#?}", lexed);
 
-    let compiled = compile(lexed);
+    let mut compiler = Compiler::new(lexed);
+    let compiled = compiler.compile();
     //println!("{:#?}", compiled);
 
     if option == "A" {

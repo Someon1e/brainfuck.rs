@@ -1,6 +1,6 @@
 use crate::compile::Instruction;
 
-pub fn to_rust(instructions: Vec<Instruction>) -> String {
+pub fn to_rust(instructions: &Vec<Instruction>) -> String {
     let mut code = vec![
         String::from("let mut pointer: usize = 0;"),
         String::from("let mut memory: Vec<u8> = vec![0; 50];"),

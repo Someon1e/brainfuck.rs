@@ -1,4 +1,4 @@
-use crate::lexer::{Token, Lexer};
+use crate::lexer::{Lexer, Token};
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -26,116 +26,116 @@ enum CompilingInstruction {
     None,
 }
 
-fn push_compiling_instruction(
-    instructions: &mut Vec<Instruction>,
-    compiling_instruction: &mut CompilingInstruction,
-    value: &mut isize,
-) {
-    if *compiling_instruction != CompilingInstruction::None {
-        instructions.push(match compiling_instruction {
-            CompilingInstruction::Move => Instruction::Move(*value),
-            CompilingInstruction::Increment => {
-                if value.is_positive() {
-                    Instruction::Increment(*value as u8)
-                } else {
-                    Instruction::Decrement(value.abs() as u8)
-                }
-            }
-            CompilingInstruction::None => unreachable!(),
-        });
-        *compiling_instruction = CompilingInstruction::None;
-        *value = 0
-    }
+pub struct Compiler<'a> {
+    tokens: Lexer<'a>,
+    instructions: Vec<Instruction>,
+    value: isize,
+    loop_stack: Vec<usize>,
+    compiling_instruction: CompilingInstruction,
 }
-pub fn compile(tokens: Lexer) -> Vec<Instruction> {
-    let mut instructions: Vec<Instruction> = vec![];
 
-    let mut value: isize = 0;
-    let mut compiling_instruction: CompilingInstruction = CompilingInstruction::None;
-
-    let mut loop_stack = vec![];
-
-    for token in tokens {
-        match token {
-            Token::Forward | Token::Backward => {
-                if compiling_instruction != CompilingInstruction::Move {
-                    push_compiling_instruction(
-                        &mut instructions,
-                        &mut compiling_instruction,
-                        &mut value,
-                    );
-                    compiling_instruction = CompilingInstruction::Move;
-                }
-                value += if let Token::Forward = token { 1 } else { -1 };
-                continue;
-            }
-            Token::Increment | Token::Decrement => {
-                if compiling_instruction != CompilingInstruction::Increment {
-                    push_compiling_instruction(
-                        &mut instructions,
-                        &mut compiling_instruction,
-                        &mut value,
-                    );
-                    compiling_instruction = CompilingInstruction::Increment;
-                }
-                value += if let Token::Increment = token { 1 } else { -1 };
-                continue;
-            }
-            Token::Comment => continue,
-            _ => {}
+impl<'a> Compiler<'a> {
+    pub fn new(tokens: Lexer<'a>) -> Self {
+        Self {
+            tokens: tokens,
+            instructions: vec![],
+            value: 0,
+            loop_stack: vec![],
+            compiling_instruction: CompilingInstruction::None,
         }
-
-        push_compiling_instruction(&mut instructions, &mut compiling_instruction, &mut value);
-        match token {
-            Token::LoopStart => {
-                loop_stack.push(instructions.len());
-                instructions.push(Instruction::LoopStart(0)) // temp 0
-            }
-            Token::LoopEnd => {
-                let loop_start = loop_stack.pop().expect("loop end without start"); // Index it should jump to in order to restart the loop
-                let loop_end = instructions.len(); // Index it should jump to in order to skip the loop
-
-                let replacement = if loop_end - loop_start - 1 == 1 {
-                    // Only one type of instruction there
-                    match instructions[loop_start + 1] {
-                        Instruction::Decrement(decrement) => {
-                            instructions.remove(loop_start + 1);
-
-                            Instruction::DecrementLoop(decrement)
-                        }
-                        Instruction::Increment(increment) => {
-                            instructions.remove(loop_start + 1);
-
-                            Instruction::IncrementLoop(increment)
-                        }
-                        Instruction::Move(offset) => {
-                            instructions.remove(loop_start + 1);
-
-                            Instruction::MoveLoop(offset)
-                        }
-                        _ => {
-                            instructions.push(Instruction::LoopEnd(loop_start));
-
-                            Instruction::LoopStart(loop_end)
-                        }
+    }
+    fn push_compiling_instruction(&mut self) {
+        if self.compiling_instruction != CompilingInstruction::None {
+            self.instructions.push(match self.compiling_instruction {
+                CompilingInstruction::Move => Instruction::Move(self.value),
+                CompilingInstruction::Increment => {
+                    if self.value.is_positive() {
+                        Instruction::Increment(self.value as u8)
+                    } else {
+                        Instruction::Decrement(self.value.abs() as u8)
                     }
-                } else {
-                    instructions.push(Instruction::LoopEnd(loop_start));
-                    Instruction::LoopStart(loop_end)
-                };
-                instructions[loop_start] = replacement;
-            }
-            Token::Input => instructions.push(Instruction::Input),
-            Token::Output => instructions.push(Instruction::Output),
-            _ => unreachable!(),
+                }
+                CompilingInstruction::None => unreachable!(),
+            });
+            self.compiling_instruction = CompilingInstruction::None;
+            self.value = 0
         }
     }
+    pub fn compile(&mut self) -> &Vec<Instruction> {
+        while let Some(token) = self.tokens.next() {
+            match token {
+                Token::Forward | Token::Backward => {
+                    if self.compiling_instruction != CompilingInstruction::Move {
+                        self.push_compiling_instruction();
+                        self.compiling_instruction = CompilingInstruction::Move;
+                    }
+                    self.value += if let Token::Forward = token { 1 } else { -1 };
+                    continue;
+                }
+                Token::Increment | Token::Decrement => {
+                    if self.compiling_instruction != CompilingInstruction::Increment {
+                        self.push_compiling_instruction();
+                        self.compiling_instruction = CompilingInstruction::Increment;
+                    }
+                    self.value += if let Token::Increment = token { 1 } else { -1 };
+                    continue;
+                }
+                Token::Comment => continue,
+                _ => {}
+            }
 
-    push_compiling_instruction(&mut instructions, &mut compiling_instruction, &mut value);
+            self.push_compiling_instruction();
+            match token {
+                Token::LoopStart => {
+                    self.loop_stack.push(self.instructions.len());
+                    self.instructions.push(Instruction::LoopStart(0)) // temp 0
+                }
+                Token::LoopEnd => {
+                    let loop_start = self.loop_stack.pop().expect("loop end without start"); // Index it should jump to in order to restart the loop
+                    let loop_end = self.instructions.len(); // Index it should jump to in order to skip the loop
 
-    if !loop_stack.is_empty() {
-        panic!("Unclosed loop");
+                    let replacement = if loop_end - loop_start - 1 == 1 {
+                        // Only one type of instruction there
+                        match self.instructions[loop_start + 1] {
+                            Instruction::Decrement(decrement) => {
+                                self.instructions.remove(loop_start + 1);
+
+                                Instruction::DecrementLoop(decrement)
+                            }
+                            Instruction::Increment(increment) => {
+                                self.instructions.remove(loop_start + 1);
+
+                                Instruction::IncrementLoop(increment)
+                            }
+                            Instruction::Move(offset) => {
+                                self.instructions.remove(loop_start + 1);
+
+                                Instruction::MoveLoop(offset)
+                            }
+                            _ => {
+                                self.instructions.push(Instruction::LoopEnd(loop_start));
+
+                                Instruction::LoopStart(loop_end)
+                            }
+                        }
+                    } else {
+                        self.instructions.push(Instruction::LoopEnd(loop_start));
+                        Instruction::LoopStart(loop_end)
+                    };
+                    self.instructions[loop_start] = replacement;
+                }
+                Token::Input => self.instructions.push(Instruction::Input),
+                Token::Output => self.instructions.push(Instruction::Output),
+                _ => unreachable!(),
+            }
+        }
+
+        self.push_compiling_instruction();
+
+        if !self.loop_stack.is_empty() {
+            panic!("Unclosed loop");
+        }
+
+        &self.instructions
     }
-
-    instructions
 }
