@@ -1,6 +1,6 @@
 use crate::compile::Instruction;
 use std::io::{stdin, stdout, Read, Write};
-pub fn execute(instructions: &Vec<Instruction>) -> Vec<u8> {
+pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
     let mut stdout = stdout().lock();
 
     let mut memory: Vec<u8> = vec![0; 50];
