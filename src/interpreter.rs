@@ -9,8 +9,8 @@ pub fn execute(instructions: &Vec<Instruction>) -> Vec<u8> {
     let mut cell = unsafe { memory.get_unchecked_mut(pointer as usize) };
 
     let mut instruction_index = 0;
-    while let Some(instruction) = instructions.get(instruction_index) {
-        match instruction {
+    loop {
+        match unsafe {instructions.get_unchecked(instruction_index)} {
             Instruction::Move(offset) => {
                 pointer += offset;
                 if pointer as usize >= memory.len() {
@@ -62,6 +62,7 @@ pub fn execute(instructions: &Vec<Instruction>) -> Vec<u8> {
                 stdin().read_exact(&mut input).unwrap();
                 *cell = input[0];
             }
+            Instruction::Stop => break
         }
         instruction_index += 1;
     }

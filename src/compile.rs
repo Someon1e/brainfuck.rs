@@ -16,6 +16,8 @@ pub enum Instruction {
 
     Output,
     Input,
+
+    Stop
 }
 
 #[derive(Debug, PartialEq)]
@@ -141,6 +143,7 @@ impl<'a> Compiler<'a> {
         }
 
         self.compile_compiling_instruction();
+        self.instructions.push(Instruction::Stop);
 
         if !self.loop_stack.is_empty() {
             panic!("Unclosed loop");

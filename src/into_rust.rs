@@ -6,8 +6,9 @@ pub fn to_rust(instructions: &Vec<Instruction>) -> String {
         String::from("let mut memory: Vec<u8> = vec![0; 50];"),
     ];
 
-    for instruction in instructions {
-        code.push(match instruction {
+    let mut instruction_index = 0;
+    loop {
+        code.push(match unsafe {instructions.get_unchecked(instruction_index)} {
             Instruction::Move(offset) => {
                 if offset.is_positive() {
                 format!(
@@ -72,7 +73,9 @@ pointer -= {};
             Instruction::Input => {
                 unimplemented!()
             }
-        })
+            Instruction::Stop => break
+        });
+        instruction_index += 1
     }
 
     format!("fn main() {{\n{}\n}}", code.join("\n"))
