@@ -2,7 +2,8 @@ use crate::lexer::{Lexer, Token};
 
 #[derive(Debug)]
 pub enum Instruction {
-    Move(isize),
+    Forward(usize),
+    Backward(usize),
 
     Increment(u8),
     Decrement(u8),
@@ -10,7 +11,8 @@ pub enum Instruction {
     SetZero,
     IncrementLoop(u8),
 
-    MoveLoop(isize),
+    ForwardLoop(usize),
+    BackwardLoop(usize),
 
     LoopStart(usize),
     LoopEnd(usize),
@@ -52,7 +54,13 @@ impl<'a> Compiler<'a> {
             return;
         }
         self.instructions.push(match self.compiling_instruction {
-            CompilingInstruction::Move => Instruction::Move(self.value),
+            CompilingInstruction::Move => {
+                if self.value.is_positive() {
+                    Instruction::Forward(self.value as usize)
+                } else {
+                    Instruction::Backward(self.value.abs() as usize)
+                }
+            },
             CompilingInstruction::Increment => {
                 if self.value.is_positive() {
                     Instruction::Increment(self.value as u8)
@@ -99,10 +107,15 @@ impl<'a> Compiler<'a> {
                         Instruction::IncrementLoop(value)
                     }
                 }
-                Instruction::Move(offset) => {
+                Instruction::Forward(offset) => {
                     self.instructions.remove(loop_start + 1);
 
-                    Instruction::MoveLoop(offset)
+                    Instruction::ForwardLoop(offset)
+                }
+                Instruction::Backward(offset) => {
+                    self.instructions.remove(loop_start + 1);
+
+                    Instruction::BackwardLoop(offset)
                 }
                 _ => {
                     self.instructions.push(Instruction::LoopEnd(loop_start));

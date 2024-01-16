@@ -4,19 +4,23 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
     let mut stdout = stdout().lock();
 
     let mut memory: Vec<u8> = vec![0; 50];
-    let mut pointer: isize = 0;
+    let mut pointer: usize = 0;
 
-    let mut cell = unsafe { memory.get_unchecked_mut(pointer as usize) };
+    let mut cell = unsafe { memory.get_unchecked_mut(pointer) };
 
     let mut instruction_index = 0;
     loop {
         match unsafe { instructions.get_unchecked(instruction_index) } {
-            Instruction::Move(offset) => {
+            Instruction::Forward(offset) => {
                 pointer += offset;
-                if pointer as usize >= memory.len() {
-                    memory.resize(pointer as usize + 10, 0)
+                if pointer >= memory.len() {
+                    memory.resize(pointer + 10, 0)
                 }
-                cell = unsafe { memory.get_unchecked_mut(pointer as usize) };
+                cell = unsafe { memory.get_unchecked_mut(pointer) };
+            }
+            Instruction::Backward(offset) => {
+                pointer -= offset;
+                cell = unsafe { memory.get_unchecked_mut(pointer) };
             }
             Instruction::Increment(increment) => *cell += increment,
             Instruction::Decrement(decrement) => *cell -= decrement,
@@ -29,13 +33,19 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                     panic!("Infinite loop detected")
                 }
             }
-            Instruction::MoveLoop(offset) => {
+            Instruction::ForwardLoop(offset) => {
                 while *cell != 0 {
                     pointer += offset;
-                    if pointer as usize >= memory.len() {
-                        memory.resize(pointer as usize + 10, 0)
+                    if pointer >= memory.len() {
+                        memory.resize(pointer + 10, 0)
                     }
-                    cell = unsafe { memory.get_unchecked_mut(pointer as usize) };
+                    cell = unsafe { memory.get_unchecked_mut(pointer) };
+                }
+            }
+            Instruction::BackwardLoop(offset) => {
+                while *cell != 0 {
+                    pointer -= offset;
+                    cell = unsafe { memory.get_unchecked_mut(pointer) };
                 }
             }
             Instruction::LoopStart(loop_end) => {

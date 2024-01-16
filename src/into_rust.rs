@@ -8,68 +8,68 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
 
     let mut instruction_index = 0;
     loop {
-        code.push(match unsafe {instructions.get_unchecked(instruction_index)} {
-            Instruction::Move(offset) => {
-                if offset.is_positive() {
-                format!(
-"pointer += {offset};
+        code.push(
+            match unsafe { instructions.get_unchecked(instruction_index) } {
+                Instruction::Forward(offset) => {
+                    format!(
+                        "pointer += {offset};
 if pointer >= memory.len() {{
 memory.resize(pointer + 10, 0)
-}}")
-                } else {
+}}"
+                    )
+                }
+                Instruction::Backward(offset) => {
                     // really hope it doesn't wrap around
                     // TODO: fix above
-                    format!("pointer -= {};", offset.abs())
+                    format!("pointer -= {};", offset)
                 }
-            }
-            Instruction::Increment(increment) => {
-                format!("memory[pointer] += {increment};")
-            }
-            Instruction::Decrement(decrement) => {
-                format!("memory[pointer] -= {decrement};")
-            }
-            Instruction::SetZero => {
-                "memory[pointer] = 0;".to_owned()
-            }
-            Instruction::IncrementLoop(value) => {
-                format!(
-"let cell = unsafe {{ memory.get_unchecked_mut(pointer) }};
+                Instruction::Increment(increment) => {
+                    format!("memory[pointer] += {increment};")
+                }
+                Instruction::Decrement(decrement) => {
+                    format!("memory[pointer] -= {decrement};")
+                }
+                Instruction::SetZero => "memory[pointer] = 0;".to_owned(),
+                Instruction::IncrementLoop(value) => {
+                    format!(
+                        "let cell = unsafe {{ memory.get_unchecked_mut(pointer) }};
 if *cell % {value} == 0 {{
 *cell = 0
 }} else {{
 panic!(\"Infinite loop detected\")
-}}")     
-            }
-            Instruction::MoveLoop(offset) => {
-                if offset.is_positive() {
+}}"
+                    )
+                }
+                Instruction::ForwardLoop(offset) => {
                     format!(
-"while unsafe {{ *memory.get_unchecked(pointer) }} != 0 {{
+                        "while unsafe {{ *memory.get_unchecked(pointer) }} != 0 {{
 pointer += {offset};
 if pointer >= memory.len() {{
 memory.resize(pointer + 10, 0)
 }}
-}}")
-                    } else {
-                    format!(
-"while unsafe {{ *memory.get_unchecked(pointer) }} != 0 {{
-pointer -= {};
-}}", offset.abs())
+}}"
+                    )
                 }
-            }
-            Instruction::LoopStart(_loop_end) => {
-                r#"while unsafe { *memory.get_unchecked(pointer) } != 0 {"#.to_owned()
-            }
-            Instruction::LoopEnd(_loop_start) => {
-                r#"}"#.to_owned()
-            }
-            Instruction::Output => {
-                r#"print!("{}", unsafe { *memory.get_unchecked(pointer) } as char);"#.to_owned()
-            }
-            Instruction::Input => {
-                unimplemented!()
-            }
-            Instruction::Stop => break
-        });
+                Instruction::BackwardLoop(offset) => {
+                    format!(
+                        "while unsafe {{ *memory.get_unchecked(pointer) }} != 0 {{
+pointer -= {offset};
+}}"
+                    )
+                }
+                Instruction::LoopStart(_loop_end) => {
+                    r#"while unsafe { *memory.get_unchecked(pointer) } != 0 {"#.to_owned()
+                }
+                Instruction::LoopEnd(_loop_start) => r#"}"#.to_owned(),
+                Instruction::Output => {
+                    r#"print!("{}", unsafe { *memory.get_unchecked(pointer) } as char);"#.to_owned()
+                }
+                Instruction::Input => {
+                    unimplemented!()
+                }
+                Instruction::Stop => break,
+            },
+        );
         instruction_index += 1
     }
 
