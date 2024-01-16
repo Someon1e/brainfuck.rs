@@ -21,13 +21,6 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
             Instruction::Increment(increment) => *cell += increment,
             Instruction::Decrement(decrement) => *cell -= decrement,
 
-            Instruction::DecrementLoop(decrement) => {
-                if *cell % *decrement == 0 {
-                    *cell = 0
-                } else {
-                    panic!("Infinite loop detected")
-                }
-            }
             Instruction::IncrementLoop(increment) => {
                 if *cell % *increment == 0 {
                     *cell = 0

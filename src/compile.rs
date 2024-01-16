@@ -7,8 +7,8 @@ pub enum Instruction {
     Increment(u8),
     Decrement(u8),
 
-    DecrementLoop(u8),
     IncrementLoop(u8),
+
     MoveLoop(isize),
 
     LoopStart(usize),
@@ -17,7 +17,7 @@ pub enum Instruction {
     Output,
     Input,
 
-    Stop
+    Stop,
 }
 
 #[derive(Debug, PartialEq)]
@@ -89,15 +89,10 @@ impl<'a> Compiler<'a> {
         let replacement = if loop_end - loop_start - 1 == 1 {
             // Only one type of instruction there
             match self.instructions[loop_start + 1] {
-                Instruction::Decrement(decrement) => {
+                Instruction::Decrement(value) | Instruction::Increment(value) => {
                     self.instructions.remove(loop_start + 1);
 
-                    Instruction::DecrementLoop(decrement)
-                }
-                Instruction::Increment(increment) => {
-                    self.instructions.remove(loop_start + 1);
-
-                    Instruction::IncrementLoop(increment)
+                    Instruction::IncrementLoop(value)
                 }
                 Instruction::Move(offset) => {
                     self.instructions.remove(loop_start + 1);

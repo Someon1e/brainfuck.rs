@@ -28,18 +28,10 @@ memory.resize(pointer + 10, 0)
             Instruction::Decrement(decrement) => {
                 format!("memory[pointer] -= {decrement};")
             }
-            Instruction::DecrementLoop(decrement) => {
+            Instruction::IncrementLoop(value) => {
                 format!(
 "let cell = unsafe {{ memory.get_unchecked_mut(pointer) }};
-if *cell % {decrement} == 0 {{
-*cell = 0
-}} else {{
-panic!(\"Infinite loop detected\")
-}}")}
-            Instruction::IncrementLoop(increment) => {
-                format!(
-"let cell = unsafe {{ memory.get_unchecked_mut(pointer) }};
-if *cell % {increment} == 0 {{
+if *cell % {value} == 0 {{
 *cell = 0
 }} else {{
 panic!(\"Infinite loop detected\")
