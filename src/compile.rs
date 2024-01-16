@@ -7,6 +7,7 @@ pub enum Instruction {
     Increment(u8),
     Decrement(u8),
 
+    SetZero,
     IncrementLoop(u8),
 
     MoveLoop(isize),
@@ -92,7 +93,11 @@ impl<'a> Compiler<'a> {
                 Instruction::Decrement(value) | Instruction::Increment(value) => {
                     self.instructions.remove(loop_start + 1);
 
-                    Instruction::IncrementLoop(value)
+                    if value == 1 {
+                        Instruction::SetZero
+                    } else {
+                        Instruction::IncrementLoop(value)
+                    }
                 }
                 Instruction::Move(offset) => {
                     self.instructions.remove(loop_start + 1);

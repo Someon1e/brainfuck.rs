@@ -10,7 +10,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
 
     let mut instruction_index = 0;
     loop {
-        match unsafe {instructions.get_unchecked(instruction_index)} {
+        match unsafe { instructions.get_unchecked(instruction_index) } {
             Instruction::Move(offset) => {
                 pointer += offset;
                 if pointer as usize >= memory.len() {
@@ -21,6 +21,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
             Instruction::Increment(increment) => *cell += increment,
             Instruction::Decrement(decrement) => *cell -= decrement,
 
+            Instruction::SetZero => *cell = 0,
             Instruction::IncrementLoop(increment) => {
                 if *cell % *increment == 0 {
                     *cell = 0
@@ -55,7 +56,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                 stdin().read_exact(&mut input).unwrap();
                 *cell = input[0];
             }
-            Instruction::Stop => break
+            Instruction::Stop => break,
         }
         instruction_index += 1;
     }

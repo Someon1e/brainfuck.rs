@@ -28,6 +28,9 @@ memory.resize(pointer + 10, 0)
             Instruction::Decrement(decrement) => {
                 format!("memory[pointer] -= {decrement};")
             }
+            Instruction::SetZero => {
+                "memory[pointer] = 0;".to_owned()
+            }
             Instruction::IncrementLoop(value) => {
                 format!(
 "let cell = unsafe {{ memory.get_unchecked_mut(pointer) }};
