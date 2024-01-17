@@ -69,6 +69,16 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 indent!();
                 push_str!("memory[pointer] = 0;\n")
             }
+            Instruction::LoopStart(_loop_end) => {
+                indent!();
+                push_str!("while unsafe { *memory.get_unchecked(pointer) } != 0 {\n");
+                indent_level += 1;
+            }
+            Instruction::LoopEnd(_loop_start) => {
+                indent_level -= 1;
+                indent!();
+                push_str!("}\n")
+            }
             Instruction::IncrementLoop(value) => {
                 indent!();
                 push_str!("let cell = unsafe { memory.get_unchecked_mut(pointer) };\n");
@@ -94,16 +104,6 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 push_str!("while unsafe { *memory.get_unchecked(pointer) } != 0 {pointer -= ");
                 push_str!(&offset.to_string());
                 push_str!("}\n");
-            }
-            Instruction::LoopStart(_loop_end) => {
-                indent!();
-                push_str!("while unsafe { *memory.get_unchecked(pointer) } != 0 {\n");
-                indent_level += 1;
-            }
-            Instruction::LoopEnd(_loop_start) => {
-                indent_level -= 1;
-                indent!();
-                push_str!("}\n")
             }
             Instruction::Output => {
                 indent!();

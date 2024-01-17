@@ -11,6 +11,19 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
     let mut instruction_index = 0;
     loop {
         match unsafe { instructions.get_unchecked(instruction_index) } {
+            Instruction::LoopStart(loop_end) => {
+                if *cell == 0 {
+                    instruction_index = *loop_end;
+                    continue;
+                }
+            }
+            Instruction::LoopEnd(loop_start) => {
+                if *cell != 0 {
+                    instruction_index = *loop_start;
+                    continue;
+                }
+            }
+
             Instruction::Forward(offset) => {
                 pointer += offset;
                 if pointer >= memory.len() {
@@ -26,13 +39,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
             Instruction::Decrement(decrement) => *cell -= decrement,
 
             Instruction::SetZero => *cell = 0,
-            Instruction::IncrementLoop(increment) => {
-                if *cell % *increment == 0 {
-                    *cell = 0
-                } else {
-                    panic!("Infinite loop detected")
-                }
-            }
+
             Instruction::ForwardLoop(offset) => {
                 while *cell != 0 {
                     pointer += offset;
@@ -48,19 +55,16 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                     cell = unsafe { memory.get_unchecked_mut(pointer) };
                 }
             }
-            Instruction::LoopStart(loop_end) => {
-                if *cell == 0 {
-                    instruction_index = *loop_end;
-                    continue;
-                }
-            }
-            Instruction::LoopEnd(loop_start) => {
-                if *cell != 0 {
-                    instruction_index = *loop_start;
-                    continue;
-                }
-            }
             Instruction::Output => write!(stdout, "{}", *cell as char).unwrap(),
+
+            Instruction::IncrementLoop(increment) => {
+                if *cell % *increment == 0 {
+                    *cell = 0
+                } else {
+                    panic!("Infinite loop detected")
+                }
+            }
+
             Instruction::Input => {
                 let mut input: [u8; 1] = [0; 1];
                 stdin().read_exact(&mut input).unwrap();
