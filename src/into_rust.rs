@@ -52,9 +52,7 @@ memory.resize(pointer + 10, 0)
                 }
                 Instruction::BackwardLoop(offset) => {
                     format!(
-                        "while unsafe {{ *memory.get_unchecked(pointer) }} != 0 {{
-pointer -= {offset};
-}}"
+                        "while unsafe {{ *memory.get_unchecked(pointer) }} != 0 {{pointer -= {offset}}}"
                     )
                 }
                 Instruction::LoopStart(_loop_end) => {
