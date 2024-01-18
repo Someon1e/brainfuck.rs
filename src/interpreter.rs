@@ -12,9 +12,9 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
     let mut instruction_index = 0;
     loop {
         match unsafe { instructions.get_unchecked(instruction_index) } {
-            Instruction::LoopStart(loop_end) => {
+            Instruction::LoopStart(loop_exit) => {
                 if *cell == 0 {
-                    instruction_index = *loop_end;
+                    instruction_index = *loop_exit;
                     continue;
                 }
             }
