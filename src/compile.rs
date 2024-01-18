@@ -118,12 +118,12 @@ impl<'a> Compiler<'a> {
                     Instruction::BackwardLoop(offset)
                 }
                 _ => {
-                    self.instructions.push(Instruction::LoopEnd(loop_start));
+                    self.instructions.push(Instruction::LoopEnd(loop_start + 1));
                     Instruction::LoopStart(loop_end)
                 }
             }
         } else {
-            self.instructions.push(Instruction::LoopEnd(loop_start));
+            self.instructions.push(Instruction::LoopEnd(loop_start + 1));
             Instruction::LoopStart(loop_end)
         };
         self.instructions[loop_start] = replacement;

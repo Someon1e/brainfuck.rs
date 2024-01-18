@@ -18,9 +18,9 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                     continue;
                 }
             }
-            Instruction::LoopEnd(loop_start) => {
+            Instruction::LoopEnd(loop_body) => {
                 if *cell != 0 {
-                    instruction_index = *loop_start;
+                    instruction_index = *loop_body;
                     continue;
                 }
             }
