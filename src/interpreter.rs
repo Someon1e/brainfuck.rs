@@ -2,6 +2,7 @@ use crate::compile::Instruction;
 use std::io::{stdin, stdout, Read, Write};
 pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
     let mut stdout = stdout().lock();
+    let mut stdin = stdin().lock();
 
     let mut memory: Vec<u8> = vec![0; 50];
     let mut pointer: usize = 0;
@@ -67,7 +68,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
 
             Instruction::Input => {
                 let mut input: [u8; 1] = [0; 1];
-                stdin().read_exact(&mut input).unwrap();
+                stdin.read_exact(&mut input).unwrap();
                 *cell = input[0];
             }
             Instruction::Stop => break,
