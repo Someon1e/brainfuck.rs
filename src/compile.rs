@@ -119,12 +119,12 @@ impl<'a> Compiler<'a> {
                 }
                 _ => {
                     self.instructions.push(Instruction::LoopEnd(loop_start + 1));
-                    Instruction::LoopStart(loop_end)
+                    Instruction::LoopStart(loop_end + 1)
                 }
             }
         } else {
             self.instructions.push(Instruction::LoopEnd(loop_start + 1));
-            Instruction::LoopStart(loop_end)
+            Instruction::LoopStart(loop_end + 1)
         };
         self.instructions[loop_start] = replacement;
     }
