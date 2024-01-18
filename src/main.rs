@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{stdin, stdout, StdoutLock, Write};
+use std::io::{stdin, stdout, BufRead, Write};
 
 mod compile;
 use compile::Compiler;
@@ -13,33 +13,34 @@ use interpreter::execute;
 mod into_rust;
 use into_rust::to_rust;
 
-fn ask(question: &str, stdout: &mut StdoutLock) -> String {
-    write!(stdout, "{question}").unwrap();
-    stdout.flush().unwrap();
-
-    let stdin = stdin();
-
-    let mut input = String::new();
-    stdin.read_line(&mut input).unwrap();
-    return input.trim().to_owned();
-}
-
 fn main() {
     let input;
     let option;
     {
         let mut stdout = stdout().lock();
+        let mut stdin = stdin().lock();
 
-        let input_type = ask("(A) File directory or (B) text input? ", &mut stdout);
+        macro_rules! ask {
+            ($question:expr) => {{
+                write!(stdout, "{}", $question).unwrap();
+                stdout.flush().unwrap();
+
+                let mut input = String::new();
+                stdin.read_line(&mut input).unwrap();
+                input.trim().to_string()
+            }};
+        }
+
+        let input_type = ask!("(A) File directory or (B) text input? ");
         if input_type == "A" {
-            input = fs::read_to_string(ask("File directory: ", &mut stdout)).unwrap()
+            input = fs::read_to_string(ask!("File directory: ")).unwrap()
         } else if input_type == "B" {
-            input = ask("Code: ", &mut stdout)
+            input = ask!("Code: ")
         } else {
             panic!("Invalid input")
         }
 
-        option = ask("(A) Interpret or (B) transpile into rust? ", &mut stdout);
+        option = ask!("(A) Interpret or (B) transpile into rust? ");
         if option != "A" {
             assert_eq!(option, "B", "Invalid input")
         };
