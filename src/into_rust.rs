@@ -58,15 +58,15 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
             }
             Instruction::Increment(increment) => {
                 indent!();
-                push_str!("memory[pointer] += ");
+                push_str!("memory[pointer] = memory[pointer].wrapping_add(");
                 push_str!(&increment.to_string());
-                push_str!(";\n")
+                push_str!(");\n")
             }
             Instruction::Decrement(decrement) => {
                 indent!();
-                push_str!("memory[pointer] -= ");
+                push_str!("memory[pointer] = memory[pointer].wrapping_sub(");
                 push_str!(&decrement.to_string());
-                push_str!(";\n")
+                push_str!(");\n")
             }
             Instruction::SetZero => {
                 indent!();
