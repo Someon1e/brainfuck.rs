@@ -33,8 +33,11 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
         }
     }
 
+    push_str!("use std::io::{stdin, Read};\n");
+
     push_str!("fn main() {\n");
     indent_level += 1;
+    indent!(); push_str!("let mut stdin = stdin().lock();\n");
     indent!(); push_str!("let mut pointer: usize = 0;\n");
     indent!(); push_str!("let mut memory: Vec<u8> = vec![0; 50];\n");
 
@@ -110,7 +113,14 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 push_str!("print!(\"{}\", unsafe { *memory.get_unchecked(pointer) } as char);\n")
             }
             Instruction::Input => {
-                unimplemented!()
+                indent!();
+                push_str!("let mut input: [u8; 1] = [0; 1];\n");
+
+                indent!();
+                push_str!("stdin.read_exact(&mut input).unwrap();\n");
+
+                indent!();
+                push_str!("memory[pointer] = input[0];\n")
             }
             Instruction::Stop => break,
         }
