@@ -36,8 +36,8 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                 pointer -= offset;
                 cell = unsafe { memory.get_unchecked_mut(pointer) };
             }
-            Instruction::Increment(increment) => *cell += increment,
-            Instruction::Decrement(decrement) => *cell -= decrement,
+            Instruction::Increment(increment) => *cell = cell.wrapping_add(*increment),
+            Instruction::Decrement(decrement) => *cell = cell.wrapping_sub(*decrement),
 
             Instruction::SetZero => *cell = 0,
 
