@@ -42,7 +42,7 @@ pub struct Compiler<'a> {
 impl<'a> Compiler<'a> {
     pub fn new(tokens: Lexer<'a>) -> Self {
         Self {
-            tokens: tokens,
+            tokens,
             instructions: vec![],
             value: 0,
             loop_stack: vec![],
@@ -58,14 +58,14 @@ impl<'a> Compiler<'a> {
                 if self.value.is_positive() {
                     Instruction::Forward(self.value as usize)
                 } else {
-                    Instruction::Backward(self.value.abs() as usize)
+                    Instruction::Backward(self.value.unsigned_abs())
                 }
             },
             CompilingInstruction::Increment => {
                 if self.value.is_positive() {
                     Instruction::Increment(self.value as u8)
                 } else {
-                    Instruction::Decrement(self.value.abs() as u8)
+                    Instruction::Decrement(self.value.unsigned_abs() as u8)
                 }
             }
             CompilingInstruction::None => unreachable!(),
