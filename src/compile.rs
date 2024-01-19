@@ -92,8 +92,8 @@ impl<'a> Compiler<'a> {
         self.instructions.push(Instruction::LoopStart(0)) // temp 0
     }
     fn end_loop(&mut self) {
-        let loop_start = self.loop_stack.pop().expect("loop end without start"); // Index it should jump to in order to restart the loop
-        let loop_end = self.instructions.len(); // Index it should jump to in order to skip the loop
+        let loop_start = self.loop_stack.pop().expect("loop end without start"); // Index of loop start instruction
+        let loop_end = self.instructions.len(); // Index of loop end instruction
 
         let replacement = if loop_end - loop_start - 1 == 1 {
             // Only one type of instruction there
