@@ -44,9 +44,9 @@ impl<'a> Compiler<'a> {
         Self {
             tokens,
             instructions: vec![],
-            value: 0,
             loop_stack: vec![],
             compiling_instruction: CompilingInstruction::None,
+            value: 0,
         }
     }
     fn compile_compiling_instruction(&mut self) {
@@ -60,7 +60,7 @@ impl<'a> Compiler<'a> {
                 } else {
                     Instruction::Backward(self.value.unsigned_abs())
                 }
-            },
+            }
             CompilingInstruction::Increment => {
                 if self.value.is_positive() {
                     Instruction::Increment(self.value as u8)
@@ -132,9 +132,8 @@ impl<'a> Compiler<'a> {
     pub fn compile(&mut self) -> &Vec<Instruction> {
         while let Some(token) = self.tokens.next() {
             match token {
-                Token::Forward | Token::Backward => self.forward_backward(token),
                 Token::Increment | Token::Decrement => self.increment_decrement(token),
-                Token::Comment => {}
+                Token::Forward | Token::Backward => self.forward_backward(token),
 
                 Token::LoopStart => {
                     self.compile_compiling_instruction();
@@ -152,6 +151,8 @@ impl<'a> Compiler<'a> {
                     self.compile_compiling_instruction();
                     self.instructions.push(Instruction::Output)
                 }
+
+                Token::Comment => {}
             }
         }
 
