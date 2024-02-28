@@ -73,14 +73,14 @@ impl<'a> Compiler<'a> {
         self.compiling_instruction = CompilingInstruction::None;
         self.value = 0;
     }
-    fn forward_backward(&mut self, token: Token) {
+    fn forward_backward(&mut self, token: &Token) {
         if self.compiling_instruction != CompilingInstruction::Move {
             self.compile_compiling_instruction();
             self.compiling_instruction = CompilingInstruction::Move;
         }
         self.value += if let Token::Forward = token { 1 } else { -1 };
     }
-    fn increment_decrement(&mut self, token: Token) {
+    fn increment_decrement(&mut self, token: &Token) {
         if self.compiling_instruction != CompilingInstruction::Increment {
             self.compile_compiling_instruction();
             self.compiling_instruction = CompilingInstruction::Increment;
@@ -132,8 +132,8 @@ impl<'a> Compiler<'a> {
     pub fn compile(&mut self) -> &Vec<Instruction> {
         while let Some(token) = self.tokens.next() {
             match token {
-                Token::Increment | Token::Decrement => self.increment_decrement(token),
-                Token::Forward | Token::Backward => self.forward_backward(token),
+                Token::Increment | Token::Decrement => self.increment_decrement(&token),
+                Token::Forward | Token::Backward => self.forward_backward(&token),
 
                 Token::LoopStart => {
                     self.compile_compiling_instruction();
