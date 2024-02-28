@@ -54,23 +54,23 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 indent!();
                 push_str!("pointer -= ");
                 push_str!(&offset.to_string());
-                push_str!(";\n")
+                push_str!(";\n");
             }
             Instruction::Increment(increment) => {
                 indent!();
                 push_str!("memory[pointer] = memory[pointer].wrapping_add(");
                 push_str!(&increment.to_string());
-                push_str!(");\n")
+                push_str!(");\n");
             }
             Instruction::Decrement(decrement) => {
                 indent!();
                 push_str!("memory[pointer] = memory[pointer].wrapping_sub(");
                 push_str!(&decrement.to_string());
-                push_str!(");\n")
+                push_str!(");\n");
             }
             Instruction::SetZero => {
                 indent!();
-                push_str!("memory[pointer] = 0;\n")
+                push_str!("memory[pointer] = 0;\n");
             }
             Instruction::LoopStart(_loop_end) => {
                 indent!();
@@ -80,7 +80,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
             Instruction::LoopEnd(_loop_start) => {
                 indent_level -= 1;
                 indent!();
-                push_str!("}\n")
+                push_str!("}\n");
             }
             Instruction::IncrementLoop(value) => {
                 indent!();
@@ -110,7 +110,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
             }
             Instruction::Output => {
                 indent!();
-                push_str!("print!(\"{}\", unsafe { *memory.get_unchecked(pointer) } as char);\n")
+                push_str!("print!(\"{}\", unsafe { *memory.get_unchecked(pointer) } as char);\n");
             }
             Instruction::Input => {
                 indent!();
@@ -120,11 +120,11 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 push_str!("stdin.read_exact(&mut input).unwrap();\n");
 
                 indent!();
-                push_str!("memory[pointer] = input[0];\n")
+                push_str!("memory[pointer] = input[0];\n");
             }
             Instruction::Stop => break,
         }
-        instruction_index += 1
+        instruction_index += 1;
     }
 
     indent_level -= 1;

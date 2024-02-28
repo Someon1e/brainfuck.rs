@@ -28,7 +28,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
             Instruction::Forward(offset) => {
                 pointer += offset;
                 if pointer >= memory.len() {
-                    memory.resize(pointer + 10, 0)
+                    memory.resize(pointer + 10, 0);
                 }
                 cell = unsafe { memory.get_unchecked_mut(pointer) };
             }
@@ -45,7 +45,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                 while *cell != 0 {
                     pointer += offset;
                     if pointer >= memory.len() {
-                        memory.resize(pointer + 10, 0)
+                        memory.resize(pointer + 10, 0);
                     }
                     cell = unsafe { memory.get_unchecked_mut(pointer) };
                 }
@@ -60,7 +60,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
 
             Instruction::IncrementLoop(increment) => {
                 if *cell % *increment == 0 {
-                    *cell = 0
+                    *cell = 0;
                 } else {
                     panic!("Infinite loop detected")
                 }

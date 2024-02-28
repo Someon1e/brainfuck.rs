@@ -71,7 +71,7 @@ impl<'a> Compiler<'a> {
             CompilingInstruction::None => unreachable!(),
         });
         self.compiling_instruction = CompilingInstruction::None;
-        self.value = 0
+        self.value = 0;
     }
     fn forward_backward(&mut self, token: Token) {
         if self.compiling_instruction != CompilingInstruction::Move {
@@ -89,7 +89,7 @@ impl<'a> Compiler<'a> {
     }
     fn start_loop(&mut self) {
         self.loop_stack.push(self.instructions.len());
-        self.instructions.push(Instruction::LoopStart(0)) // temp 0
+        self.instructions.push(Instruction::LoopStart(0)); // temp 0
     }
     fn end_loop(&mut self) {
         let loop_start = self.loop_stack.pop().expect("loop end without start"); // Index of loop start instruction
@@ -137,19 +137,19 @@ impl<'a> Compiler<'a> {
 
                 Token::LoopStart => {
                     self.compile_compiling_instruction();
-                    self.start_loop()
+                    self.start_loop();
                 }
                 Token::LoopEnd => {
                     self.compile_compiling_instruction();
-                    self.end_loop()
+                    self.end_loop();
                 }
                 Token::Input => {
                     self.compile_compiling_instruction();
-                    self.instructions.push(Instruction::Input)
+                    self.instructions.push(Instruction::Input);
                 }
                 Token::Output => {
                     self.compile_compiling_instruction();
-                    self.instructions.push(Instruction::Output)
+                    self.instructions.push(Instruction::Output);
                 }
 
                 Token::Comment => {}

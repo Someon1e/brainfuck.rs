@@ -33,16 +33,16 @@ fn main() {
 
         let input_type = ask!("(A) File directory or (B) text input? ");
         if input_type == "A" {
-            input = fs::read_to_string(ask!("File directory: ")).unwrap()
+            input = fs::read_to_string(ask!("File directory: ")).unwrap();
         } else if input_type == "B" {
-            input = ask!("Code: ")
+            input = ask!("Code: ");
         } else {
             panic!("Invalid input")
         }
 
         option = ask!("(A) Interpret or (B) transpile into rust? ");
         if option != "A" {
-            assert_eq!(option, "B", "Invalid input")
+            assert_eq!(option, "B", "Invalid input");
         };
     }
 
