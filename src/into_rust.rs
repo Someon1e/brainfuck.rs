@@ -1,7 +1,7 @@
 use crate::compile::Instruction;
 
 pub fn to_rust(instructions: &[Instruction]) -> String {
-    let mut code = String::new();
+    let mut code = String::with_capacity(5);
 
     let mut indent_level = 0;
     macro_rules! indent {
