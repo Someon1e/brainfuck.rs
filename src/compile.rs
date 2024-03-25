@@ -78,14 +78,22 @@ impl<'a> Compiler<'a> {
             self.compile_compiling_instruction();
             self.compiling_instruction = CompilingInstruction::Move;
         }
-        self.value += if matches!(token, Token::Forward) { 1 } else { -1 };
+        self.value += if matches!(token, Token::Forward) {
+            1
+        } else {
+            -1
+        };
     }
     fn increment_decrement(&mut self, token: &Token) {
         if self.compiling_instruction != CompilingInstruction::Increment {
             self.compile_compiling_instruction();
             self.compiling_instruction = CompilingInstruction::Increment;
         }
-        self.value += if matches!(token, Token::Increment) { 1 } else { -1 };
+        self.value += if matches!(token, Token::Increment) {
+            1
+        } else {
+            -1
+        };
     }
     fn start_loop(&mut self) {
         self.loop_stack.push(self.instructions.len());
