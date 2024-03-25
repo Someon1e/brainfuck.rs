@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use std::fs;
 use std::io::{stdin, stdout, BufRead, Write};
 

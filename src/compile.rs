@@ -78,14 +78,14 @@ impl<'a> Compiler<'a> {
             self.compile_compiling_instruction();
             self.compiling_instruction = CompilingInstruction::Move;
         }
-        self.value += if let Token::Forward = token { 1 } else { -1 };
+        self.value += if matches!(token, Token::Forward) { 1 } else { -1 };
     }
     fn increment_decrement(&mut self, token: &Token) {
         if self.compiling_instruction != CompilingInstruction::Increment {
             self.compile_compiling_instruction();
             self.compiling_instruction = CompilingInstruction::Increment;
         }
-        self.value += if let Token::Increment = token { 1 } else { -1 };
+        self.value += if matches!(token, Token::Increment) { 1 } else { -1 };
     }
     fn start_loop(&mut self) {
         self.loop_stack.push(self.instructions.len());
@@ -97,7 +97,7 @@ impl<'a> Compiler<'a> {
 
         let replacement = if loop_end - loop_start - 1 == 1 {
             // Only one type of instruction there
-            match self.instructions[loop_start + 1] {
+            match *self.instructions.get(loop_start + 1).unwrap() {
                 Instruction::Decrement(value) | Instruction::Increment(value) => {
                     self.instructions.remove(loop_start + 1);
 
@@ -159,9 +159,7 @@ impl<'a> Compiler<'a> {
         self.compile_compiling_instruction();
         self.instructions.push(Instruction::Stop);
 
-        if !self.loop_stack.is_empty() {
-            panic!("Unclosed loop");
-        }
+        assert!(self.loop_stack.is_empty(), "Unclosed loop");
 
         &self.instructions
     }

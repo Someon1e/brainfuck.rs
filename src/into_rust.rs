@@ -9,37 +9,42 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
             for _ in 0..indent_level {
                 code.push('\t');
             }
-        }
+        };
     }
     macro_rules! push_str {
         ($text:expr) => {
             code.push_str($text)
-        }
+        };
     }
     macro_rules! forward {
         ($offset:expr) => {
-            push_str!("pointer += "); push_str!(&$offset.to_string()); push_str!(";\n");
+            push_str!("pointer += ");
+            push_str!(&$offset.to_string());
+            push_str!(";\n");
 
             indent!();
             push_str!("if pointer >= memory.len() {\n");
 
             indent_level += 1;
-                indent!();
-                push_str!("memory.resize(pointer + 10, 0)\n");
+            indent!();
+            push_str!("memory.resize(pointer + 10, 0)\n");
             indent_level -= 1;
 
             indent!();
             push_str!("}\n");
-        }
+        };
     }
 
     push_str!("use std::io::{stdin, Read};\n");
 
     push_str!("fn main() {\n");
     indent_level += 1;
-    indent!(); push_str!("let mut stdin = stdin().lock();\n");
-    indent!(); push_str!("let mut pointer: usize = 0;\n");
-    indent!(); push_str!("let mut memory: Vec<u8> = vec![0; 50];\n");
+    indent!();
+    push_str!("let mut stdin = stdin().lock();\n");
+    indent!();
+    push_str!("let mut pointer: usize = 0;\n");
+    indent!();
+    push_str!("let mut memory: Vec<u8> = vec![0; 50];\n");
 
     let mut instruction_index = 0;
     loop {
@@ -87,7 +92,10 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 push_str!("let cell = unsafe { memory.get_unchecked_mut(pointer) };\n");
 
                 indent!();
-                push_str!("if *cell % "); push_str!(&value.to_string()); push_str!(" == 0 {"); push_str!("*cell = 0 }");
+                push_str!("if *cell % ");
+                push_str!(&value.to_string());
+                push_str!(" == 0 {");
+                push_str!("*cell = 0 }");
                 push_str!("else {panic!(\"Infinite loop detected\")}");
             }
             Instruction::ForwardLoop(offset) => {
