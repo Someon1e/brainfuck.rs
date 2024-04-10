@@ -31,7 +31,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
             indented_push!("if pointer >= memory.len() {\n");
 
             indent_level += 1;
-            indented_push!("memory.resize(pointer + 10, Wrapping(0));\n");
+            indented_push!("memory.resize(pointer + 16, Wrapping(0));\n");
             indent_level -= 1;
 
             indented_push!("}\n");
@@ -45,7 +45,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
     indent_level += 1;
     indented_push!("let mut stdin = stdin().lock();\n");
     indented_push!("let mut pointer: usize = 0;\n");
-    indented_push!("let mut memory: Vec<Wrapping<u8>> = vec![Wrapping(0); 50];\n");
+    indented_push!("let mut memory: Vec<Wrapping<u8>> = vec![Wrapping(0); 32];\n");
 
     let mut instruction_index = 0;
     loop {

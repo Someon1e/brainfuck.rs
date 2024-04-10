@@ -4,7 +4,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
     let mut stdout = stdout().lock();
     let mut stdin = stdin().lock();
 
-    let mut memory: Vec<u8> = vec![0; 50];
+    let mut memory: Vec<u8> = vec![0; 32];
     let mut pointer: usize = 0;
 
     let mut cell = unsafe { memory.get_unchecked_mut(pointer) };
@@ -28,7 +28,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
             Instruction::Forward(offset) => {
                 pointer += offset;
                 if pointer >= memory.len() {
-                    memory.resize(pointer + 10, 0);
+                    memory.resize(pointer + 16, 0);
                 }
                 cell = unsafe { memory.get_unchecked_mut(pointer) };
             }
@@ -45,7 +45,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                 while *cell != 0 {
                     pointer += offset;
                     if pointer >= memory.len() {
-                        memory.resize(pointer + 10, 0);
+                        memory.resize(pointer + 16, 0);
                     }
                     cell = unsafe { memory.get_unchecked_mut(pointer) };
                 }
@@ -75,6 +75,8 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
         }
         instruction_index += 1;
     }
+
+    println!("{}", memory.capacity());
 
     memory
 }
