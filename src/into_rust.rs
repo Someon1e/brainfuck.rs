@@ -1,7 +1,7 @@
-use crate::compile::Instruction;
+use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
 
 pub fn to_rust(instructions: &[Instruction]) -> String {
-    let mut code = String::with_capacity(5);
+    let mut code = String::with_capacity(16);
 
     let mut indent_level = 0;
     macro_rules! indent {
@@ -45,7 +45,10 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
     indent_level += 1;
     indented_push!("let mut stdin = stdin().lock();\n");
     indented_push!("let mut pointer: usize = 0;\n");
-    indented_push!("let mut memory: Vec<Wrapping<u8>> = vec![Wrapping(0); 32];\n");
+
+    indented_push!("let mut memory: Vec<Wrapping<u8>> = vec![Wrapping(0); ");
+    push_str!(&INITIAL_MEMORY_CAPACITY.to_string());
+    push_str!("];\n");
 
     let mut instruction_index = 0;
     loop {

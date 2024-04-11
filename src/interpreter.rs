@@ -1,10 +1,10 @@
-use crate::compile::Instruction;
+use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
 use std::io::{stdin, stdout, Read, Write};
 pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
     let mut stdout = stdout().lock();
     let mut stdin = stdin().lock();
 
-    let mut memory: Vec<u8> = vec![0; 32];
+    let mut memory: Vec<u8> = vec![0; INITIAL_MEMORY_CAPACITY];
     let mut pointer: usize = 0;
 
     let mut instruction_index = 0;

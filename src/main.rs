@@ -15,6 +15,9 @@ use interpreter::execute;
 mod into_rust;
 use into_rust::to_rust;
 
+/// Initial memory capacity, however memory will resize when full.
+pub const INITIAL_MEMORY_CAPACITY: usize = 32;
+
 fn main() {
     let input;
     let option;
