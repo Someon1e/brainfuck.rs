@@ -102,7 +102,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 indented_push!("}\n");
             }
             Instruction::BackwardLoop(offset) => {
-                indented_push!("while unsafe { memory.get_unchecked(pointer).0 } != 0 {pointer -= ");
+                indented_push!(
+                    "while unsafe { memory.get_unchecked(pointer).0 } != 0 {pointer -= "
+                );
                 push_str!(&offset.to_string());
                 push_str!("}\n");
             }
