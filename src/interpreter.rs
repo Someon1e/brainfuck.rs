@@ -50,6 +50,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                     pointer += offset;
                     if pointer >= memory.len() {
                         memory.resize(pointer + MEMORY_RESIZE_AMOUNT, 0);
+                        break;
                     }
                 }
             }
