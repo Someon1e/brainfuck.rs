@@ -1,4 +1,4 @@
-use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
+use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY, MEMORY_RESIZE_AMOUNT};
 use std::io::{stdin, stdout, Read, Write};
 pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
     let mut stdout = stdout().lock();
@@ -26,7 +26,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
             Instruction::Forward(offset) => {
                 pointer += offset;
                 if pointer >= memory.len() {
-                    memory.resize(pointer + 16, 0);
+                    memory.resize(pointer + MEMORY_RESIZE_AMOUNT, 0);
                 }
             }
             Instruction::Backward(offset) => {
@@ -49,7 +49,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                 while unsafe { *memory.get_unchecked(pointer) } != 0 {
                     pointer += offset;
                     if pointer >= memory.len() {
-                        memory.resize(pointer + 16, 0);
+                        memory.resize(pointer + MEMORY_RESIZE_AMOUNT, 0);
                     }
                 }
             }

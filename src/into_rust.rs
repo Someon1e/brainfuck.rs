@@ -1,3 +1,4 @@
+use crate::MEMORY_RESIZE_AMOUNT;
 use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
 
 pub fn to_rust(instructions: &[Instruction]) -> String {
@@ -31,7 +32,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
             indented_push!("if pointer >= memory.len() {\n");
 
             indent_level += 1;
-            indented_push!("memory.resize(pointer + 16, Wrapping(0));\n");
+            indented_push!("memory.resize(pointer + ");
+            push_str!(&MEMORY_RESIZE_AMOUNT.to_string());
+            push_str!(", Wrapping(0));\n");
             indent_level -= 1;
 
             indented_push!("}\n");
