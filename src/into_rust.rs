@@ -89,13 +89,19 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 indented_push!("}\n");
             }
             Instruction::IncrementLoop(value) => {
-                indented_push!("let cell = unsafe { memory.get_unchecked_mut(pointer).0 };\n");
+                indented_push!("let cell = unsafe { memory.get_unchecked_mut(pointer) };\n");
 
-                indented_push!("if *cell % ");
+                indented_push!("if cell.0 % ");
                 push_str!(&value.to_string());
-                push_str!(" == 0 {");
-                push_str!("*cell = 0 }");
-                push_str!("else {panic!(\"Infinite loop detected\")}");
+                push_str!(" == 0 {\n");
+                indent_level += 1;
+                indented_push!("*cell = Wrapping(0)\n");
+                indent_level -= 1;
+                indented_push!("} else {\n");
+                indent_level += 1;
+                indented_push!("panic!(\"Infinite loop detected\")\n");
+                indent_level -= 1;
+                indented_push!("}\n");
             }
             Instruction::ForwardLoop(offset) => {
                 indented_push!("while unsafe { memory.get_unchecked(pointer).0 } != 0 {\n");
