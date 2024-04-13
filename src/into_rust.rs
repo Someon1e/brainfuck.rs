@@ -110,7 +110,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
 
                 indent_level += 1;
                 indented_push!("memory.resize(pointer + ");
-                push_str!(&(*offset as usize + MEMORY_RESIZE_AMOUNT).to_string());
+                push_str!(&(*offset + MEMORY_RESIZE_AMOUNT).to_string());
                 push_str!(", Wrapping(0));\n");
                 indent_level -= 1;
 
