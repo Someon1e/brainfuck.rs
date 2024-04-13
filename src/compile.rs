@@ -148,7 +148,7 @@ impl<'a> Compiler<'a> {
 
             if matches!(
                 *self.instructions.get(loop_start + 1).unwrap(),
-                Instruction::Decrement(_)
+                Instruction::Decrement(1)
             ) {
                 let mut compiling_multiplier = 0;
                 let mut compiling_multipliers = Vec::with_capacity(2);
