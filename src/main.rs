@@ -1,4 +1,8 @@
 #![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::similar_names)]
 
 use std::fs;
 use std::io::{stdin, stdout, BufRead, Write};

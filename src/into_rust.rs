@@ -1,6 +1,7 @@
 use crate::MEMORY_RESIZE_AMOUNT;
 use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
 
+#[allow(clippy::too_many_lines)]
 pub fn to_rust(instructions: &[Instruction]) -> String {
     let mut code = String::with_capacity(128);
 

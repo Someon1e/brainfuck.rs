@@ -60,10 +60,10 @@ impl<'a> Compiler<'a> {
                 if self.value != 0 {
                     if self.value.is_positive() {
                         self.instructions
-                            .push(Instruction::Forward(self.value as usize))
+                            .push(Instruction::Forward(self.value as usize));
                     } else {
                         self.instructions
-                            .push(Instruction::Backward(self.value.unsigned_abs()))
+                            .push(Instruction::Backward(self.value.unsigned_abs()));
                     }
                 }
             }
@@ -71,10 +71,10 @@ impl<'a> Compiler<'a> {
                 if self.value != 0 {
                     if self.value.is_positive() {
                         self.instructions
-                            .push(Instruction::Increment(self.value as u8))
+                            .push(Instruction::Increment(self.value as u8));
                     } else {
                         self.instructions
-                            .push(Instruction::Decrement(self.value.unsigned_abs() as u8))
+                            .push(Instruction::Decrement(self.value.unsigned_abs() as u8));
                     }
                 }
             }
@@ -191,14 +191,14 @@ impl<'a> Compiler<'a> {
 
             if let Some(multipliers) = multipliers {
                 self.instructions.truncate(loop_start);
-                for (offset, multiplier) in multipliers.iter() {
+                for (offset, multiplier) in multipliers {
                     self.instructions
-                        .push(Instruction::MultiplyForward(*offset, *multiplier))
+                        .push(Instruction::MultiplyForward(offset, multiplier));
                 }
-                self.instructions.push(Instruction::SetZero)
+                self.instructions.push(Instruction::SetZero);
             } else {
                 self.instructions.push(Instruction::LoopEnd(loop_start + 1));
-                self.instructions[loop_start] = Instruction::LoopStart(loop_end + 1)
+                self.instructions[loop_start] = Instruction::LoopStart(loop_end + 1);
             }
         };
     }

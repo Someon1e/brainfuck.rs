@@ -71,7 +71,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
             }
             Instruction::Output => {
                 let cell = unsafe { memory.get_unchecked_mut(pointer) };
-                write!(stdout, "{}", *cell as char).unwrap()
+                write!(stdout, "{}", *cell as char).unwrap();
             }
 
             Instruction::IncrementLoop(increment) => {
