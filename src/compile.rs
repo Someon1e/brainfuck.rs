@@ -55,23 +55,31 @@ impl<'a> Compiler<'a> {
         if self.compiling_instruction == CompilingInstruction::None {
             return;
         }
-        self.instructions.push(match self.compiling_instruction {
+        match self.compiling_instruction {
             CompilingInstruction::Move => {
-                if self.value.is_positive() {
-                    Instruction::Forward(self.value as usize)
-                } else {
-                    Instruction::Backward(self.value.unsigned_abs())
+                if self.value != 0 {
+                    if self.value.is_positive() {
+                        self.instructions
+                            .push(Instruction::Forward(self.value as usize))
+                    } else {
+                        self.instructions
+                            .push(Instruction::Backward(self.value.unsigned_abs()))
+                    }
                 }
             }
             CompilingInstruction::Increment => {
-                if self.value.is_positive() {
-                    Instruction::Increment(self.value as u8)
-                } else {
-                    Instruction::Decrement(self.value.unsigned_abs() as u8)
+                if self.value != 0 {
+                    if self.value.is_positive() {
+                        self.instructions
+                            .push(Instruction::Increment(self.value as u8))
+                    } else {
+                        self.instructions
+                            .push(Instruction::Decrement(self.value.unsigned_abs() as u8))
+                    }
                 }
             }
             CompilingInstruction::None => unreachable!(),
-        });
+        };
         self.compiling_instruction = CompilingInstruction::None;
         self.value = 0;
     }
