@@ -15,35 +15,21 @@ pub enum Token {
     Comment,
 }
 
-pub struct Lexer<'a> {
-    chars: std::str::Chars<'a>,
-}
+pub fn lex(input: &str) -> impl Iterator<Item = Token> + '_ {
+    let mapped = input.chars().map(|character| match character {
+        '+' => Token::Increment,
+        '-' => Token::Decrement,
 
-impl<'a> Lexer<'a> {
-    pub fn new(input: &'a str) -> Self {
-        Self {
-            chars: input.chars(),
-        }
-    }
-}
+        '>' => Token::Forward,
+        '<' => Token::Backward,
 
-impl Iterator for Lexer<'_> {
-    type Item = Token;
-    fn next(&mut self) -> Option<Self::Item> {
-        let character = self.chars.next()?;
-        Some(match character {
-            '+' => Token::Increment,
-            '-' => Token::Decrement,
+        '[' => Token::LoopStart,
+        ']' => Token::LoopEnd,
 
-            '>' => Token::Forward,
-            '<' => Token::Backward,
+        '.' => Token::Output,
+        ',' => Token::Input,
+        _ => Token::Comment,
+    });
 
-            '[' => Token::LoopStart,
-            ']' => Token::LoopEnd,
-
-            '.' => Token::Output,
-            ',' => Token::Input,
-            _ => Token::Comment,
-        })
-    }
+    mapped
 }

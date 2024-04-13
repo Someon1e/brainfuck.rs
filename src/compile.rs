@@ -1,4 +1,4 @@
-use crate::lexer::{Lexer, Token};
+use crate::lexer::Token;
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -34,7 +34,7 @@ enum CompilingInstruction {
 }
 
 pub struct Compiler<'a> {
-    tokens: Lexer<'a>,
+    tokens: Box<dyn Iterator<Item = Token> + 'a>,
     instructions: Vec<Instruction>,
     value: isize,
     loop_stack: Vec<usize>,
@@ -42,9 +42,9 @@ pub struct Compiler<'a> {
 }
 
 impl<'a> Compiler<'a> {
-    pub fn new(tokens: Lexer<'a>) -> Self {
+    pub fn new(tokens: impl Iterator<Item = Token> + 'a) -> Self {
         Self {
-            tokens,
+            tokens: Box::new(tokens),
             instructions: vec![],
             loop_stack: vec![],
             compiling_instruction: CompilingInstruction::None,

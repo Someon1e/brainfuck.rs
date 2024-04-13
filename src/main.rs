@@ -11,13 +11,14 @@ mod compile;
 use compile::Compiler;
 
 mod lexer;
-use lexer::Lexer;
 
 mod interpreter;
 use interpreter::execute;
 
 mod into_rust;
 use into_rust::to_rust;
+
+use crate::lexer::lex;
 
 /// Initial memory capacity, however memory will resize when full.
 pub const INITIAL_MEMORY_CAPACITY: usize = 32;
@@ -59,7 +60,7 @@ fn main() {
     }
 
     let before = std::time::Instant::now();
-    let lexed = Lexer::new(&input);
+    let lexed = lex(&input);
 
     //println!("{:#?}", lexed);
 
