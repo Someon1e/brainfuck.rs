@@ -11,6 +11,8 @@ pub enum Instruction {
     SetZero,
     IncrementLoop(u8),
 
+    MultiplyForward(usize, u8),
+
     ForwardLoop(usize),
     BackwardLoop(usize),
 
@@ -103,9 +105,12 @@ impl<'a> Compiler<'a> {
         let loop_start = self.loop_stack.pop().expect("loop end without start"); // Index of loop start instruction
         let loop_end = self.instructions.len(); // Index of loop end instruction
 
-        let replacement = if loop_end - loop_start - 1 == 1 {
+        if loop_end - loop_start - 1 == 0 {
+            return;
+        }
+        if loop_end - loop_start - 1 == 1 {
             // Only one type of instruction there
-            match *self.instructions.get(loop_start + 1).unwrap() {
+            self.instructions[loop_start] = match *self.instructions.get(loop_start + 1).unwrap() {
                 Instruction::Decrement(value) | Instruction::Increment(value) => {
                     self.instructions.remove(loop_start + 1);
 
@@ -131,10 +136,63 @@ impl<'a> Compiler<'a> {
                 }
             }
         } else {
-            self.instructions.push(Instruction::LoopEnd(loop_start + 1));
-            Instruction::LoopStart(loop_end + 1)
+            let mut multipliers = None;
+
+            if matches!(
+                *self.instructions.get(loop_start + 1).unwrap(),
+                Instruction::Decrement(_)
+            ) {
+                let mut compiling_multiplier = 0;
+                let mut compiling_multipliers = Vec::with_capacity(2);
+                let mut total_offset = 0;
+                for index in loop_start + 2..loop_end {
+                    // Iterate all instructions inside the loop, except the first
+                    let inner = self.instructions.get(index).unwrap();
+                    match inner {
+                        Instruction::Forward(offset) => {
+                            if compiling_multiplier != 0 {
+                                compiling_multipliers.push((total_offset, compiling_multiplier));
+                                compiling_multiplier = 0;
+                            }
+                            total_offset += offset;
+                        }
+                        Instruction::Backward(offset) => {
+                            if compiling_multiplier != 0 {
+                                compiling_multipliers.push((total_offset, compiling_multiplier));
+
+                                #[allow(unused_assignments)]
+                                {
+                                    compiling_multiplier = 0;
+                                }
+                            }
+
+                            if index == loop_end - 1 // This should be the last instruction
+                                && total_offset == *offset // and should undo all the offsets
+                                && compiling_multipliers.len() != 0
+                            // and there should be multipliers
+                            {
+                                multipliers = Some(compiling_multipliers);
+                            }
+                            break;
+                        }
+                        Instruction::Increment(increment) => compiling_multiplier += increment,
+                        _ => break,
+                    }
+                }
+            }
+
+            if let Some(multipliers) = multipliers {
+                self.instructions.truncate(loop_start);
+                for (offset, multiplier) in multipliers.iter() {
+                    self.instructions
+                        .push(Instruction::MultiplyForward(*offset, *multiplier))
+                }
+                self.instructions.push(Instruction::SetZero)
+            } else {
+                self.instructions.push(Instruction::LoopEnd(loop_start + 1));
+                self.instructions[loop_start] = Instruction::LoopStart(loop_end + 1)
+            }
         };
-        self.instructions[loop_start] = replacement;
     }
 
     pub fn compile(&mut self) -> &Vec<Instruction> {

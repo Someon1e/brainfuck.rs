@@ -2,7 +2,7 @@ use crate::MEMORY_RESIZE_AMOUNT;
 use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
 
 pub fn to_rust(instructions: &[Instruction]) -> String {
-    let mut code = String::with_capacity(16);
+    let mut code = String::with_capacity(128);
 
     let mut indent_level = 0;
     macro_rules! indent {
@@ -102,6 +102,30 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 indented_push!("panic!(\"Infinite loop detected\")\n");
                 indent_level -= 1;
                 indented_push!("}\n");
+            }
+            Instruction::MultiplyForward(offset, multiplier) => {
+                indented_push!("if pointer + ");
+                push_str!(&offset.to_string());
+                push_str!(" >= memory.len() {\n");
+
+                indent_level += 1;
+                indented_push!("memory.resize(pointer + ");
+                push_str!(&(*offset as usize + MEMORY_RESIZE_AMOUNT).to_string());
+                push_str!(", Wrapping(0));\n");
+                indent_level -= 1;
+
+                indented_push!("}\n");
+
+                indented_push!("let cell = *unsafe { memory.get_unchecked(pointer) };\n");
+                indented_push!("*unsafe { memory.get_unchecked_mut(pointer + ");
+                push_str!(&offset.to_string());
+                push_str!(") } += cell");
+                if *multiplier != 1 {
+                    push_str!(" * Wrapping(");
+                    push_str!(&multiplier.to_string());
+                    code.push(')');
+                }
+                push_str!(";\n");
             }
             Instruction::ForwardLoop(offset) => {
                 indented_push!("while unsafe { memory.get_unchecked(pointer).0 } != 0 {\n");

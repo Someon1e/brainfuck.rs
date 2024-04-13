@@ -45,6 +45,16 @@ pub fn execute(instructions: &[Instruction]) -> Vec<u8> {
                 *cell = 0;
             }
 
+            Instruction::MultiplyForward(offset, multiplier) => {
+                let cell = unsafe { *memory.get_unchecked(pointer) };
+
+                if pointer + offset >= memory.len() {
+                    memory.resize(pointer + offset + MEMORY_RESIZE_AMOUNT, 0);
+                }
+                *unsafe { memory.get_unchecked_mut(pointer + offset) } +=
+                    cell.wrapping_mul(*multiplier);
+            }
+
             Instruction::ForwardLoop(offset) => {
                 while unsafe { *memory.get_unchecked(pointer) } != 0 {
                     pointer += offset;
