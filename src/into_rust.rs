@@ -69,17 +69,17 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 push_str!(";\n");
             }
             Instruction::Increment(increment) => {
-                indented_push!("memory[pointer] += ");
+                indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } += ");
                 push_str!(&increment.to_string());
                 push_str!(";\n");
             }
             Instruction::Decrement(decrement) => {
-                indented_push!("memory[pointer] -= ");
+                indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } -= ");
                 push_str!(&decrement.to_string());
                 push_str!(";\n");
             }
             Instruction::SetZero => {
-                indented_push!("memory[pointer] = Wrapping(0);\n");
+                indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } = Wrapping(0);\n");
             }
             Instruction::LoopStart(_loop_end) => {
                 indented_push!("while unsafe { memory.get_unchecked(pointer).0 } != 0 {\n");
@@ -155,7 +155,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
 
                 indented_push!("stdin.read_exact(&mut input).unwrap();\n");
 
-                indented_push!("memory[pointer] = Wrapping(input[0]);\n");
+                indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } = Wrapping(input[0]);\n");
             }
             Instruction::Stop => break,
         }
