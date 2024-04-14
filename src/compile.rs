@@ -176,7 +176,7 @@ impl<'a> Compiler<'a> {
 
                             if index == loop_end - 1 // This should be the last instruction
                                 && total_offset == *offset // and should undo all the offsets
-                                && compiling_multipliers.is_empty()
+                                && !compiling_multipliers.is_empty()
                             // and there should be multipliers
                             {
                                 multipliers = Some(compiling_multipliers);
