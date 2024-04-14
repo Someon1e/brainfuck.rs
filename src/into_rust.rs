@@ -26,9 +26,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
     }
     macro_rules! forward {
         ($offset:expr) => {
-            push_str!("pointer += ");
+            push_str!("pointer = pointer.wrapping_add(");
             push_str!(&$offset.to_string());
-            push_str!(";\n");
+            push_str!(");\n");
 
             indented_push!("if pointer >= memory.len() {\n");
 
@@ -62,11 +62,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 forward!(offset);
             }
             Instruction::Backward(offset) => {
-                // really hope it doesn't wrap around
-                // TODO: fix above
-                indented_push!("pointer -= ");
+                indented_push!("pointer = pointer.wrapping_sub(");
                 push_str!(&offset.to_string());
-                push_str!(";\n");
+                push_str!(");\n");
             }
             Instruction::Increment(increment) => {
                 indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } += ");
@@ -155,7 +153,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
 
                 indented_push!("stdin.read_exact(&mut input).unwrap();\n");
 
-                indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } = Wrapping(input[0]);\n");
+                indented_push!(
+                    "*unsafe { memory.get_unchecked_mut(pointer) } = Wrapping(input[0]);\n"
+                );
             }
             Instruction::Stop => break,
         }
