@@ -62,11 +62,11 @@ fn main() {
     let before = std::time::Instant::now();
     let lexed = lex(&input);
 
-    //println!("{:#?}", lexed);
+    //println!("{:?}", lex(&input).collect::<Vec<crate::lexer::Token>>());
 
     let mut compiler = Compiler::new(lexed);
     let compiled = compiler.compile();
-    //println!("{:#?}", compiled);
+    //println!("{compiled:?}");
 
     if option == "A" {
         execute(compiled);
