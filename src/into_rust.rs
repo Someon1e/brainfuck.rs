@@ -3,7 +3,7 @@ use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
 
 #[allow(clippy::too_many_lines)]
 pub fn to_rust(instructions: &[Instruction]) -> String {
-    let mut code = String::with_capacity(128);
+    let mut code = String::with_capacity(256);
 
     let mut indent_level = 0;
     macro_rules! indent {
@@ -26,19 +26,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
     }
     macro_rules! forward {
         ($offset:expr) => {
-            push_str!("pointer = pointer.wrapping_add(");
+            push_str!("point_right!(");
             push_str!(&$offset.to_string());
             push_str!(");\n");
-
-            indented_push!("if pointer >= memory.len() {\n");
-
-            indent_level += 1;
-            indented_push!("memory.resize(pointer + ");
-            push_str!(&MEMORY_RESIZE_AMOUNT.to_string());
-            push_str!(", Wrapping(0));\n");
-            indent_level -= 1;
-
-            indented_push!("}\n");
         };
     }
 
@@ -54,6 +44,84 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
     push_str!(&INITIAL_MEMORY_CAPACITY.to_string());
     push_str!("];\n");
 
+    push_str!(
+        "\tmacro_rules! cell {
+\t\t() => {
+\t\t\tunsafe { memory.get_unchecked(pointer) }
+\t\t};
+\t}\n"
+    );
+
+    push_str!(
+        "\tmacro_rules! mut_cell {
+\t\t($position:expr) => {
+\t\t\tunsafe { memory.get_unchecked_mut($position) }
+\t\t};
+\t\t() => {
+\t\t\tmut_cell!(pointer)
+\t\t};
+\t}\n"
+    );
+
+    push_str!(
+        "\tmacro_rules! increment {
+\t\t($number:expr) => {
+\t\t\t*mut_cell!() += $number;
+\t\t};
+\t}\n"
+    );
+
+    push_str!(
+        "\tmacro_rules! decrement {
+\t\t($number:expr) => {
+\t\t\t*mut_cell!() -= $number;
+\t\t};
+\t}\n"
+    );
+
+    push_str!(
+        "\tmacro_rules! set_zero {
+\t\t() => {
+\t\t\t*mut_cell!() = Wrapping(0);
+\t\t};
+\t}\n"
+    );
+
+    push_str!(
+        "\tmacro_rules! point_right {
+\t\t($offset:expr) => {
+\t\t\tpointer = pointer.wrapping_add($offset);
+\t\t\tif pointer >= memory.len() {
+\t\t\t\tmemory.resize(pointer + 16, Wrapping(0));
+\t\t\t}
+\t\t};
+\t}\n"
+    );
+
+    push_str!(
+        "\tmacro_rules! point_left {
+\t\t($offset:expr) => {
+\t\t\tpointer = pointer.wrapping_sub($offset)
+\t\t};
+\t}\n"
+    );
+
+    push_str!(
+        "\tmacro_rules! output {
+\t\t() => {
+\t\t\tprint!(\"{}\", cell!().0 as char);
+\t\t};
+\t}\n"
+    );
+
+    push_str!(
+        "\tmacro_rules! cell_is_not_zero {
+\t\t() => {
+\t\t\tcell!().0 != 0
+\t\t};
+\t}\n"
+    );
+
     let mut instruction_index = 0;
     loop {
         match unsafe { instructions.get_unchecked(instruction_index) } {
@@ -62,25 +130,25 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 forward!(offset);
             }
             Instruction::Backward(offset) => {
-                indented_push!("pointer = pointer.wrapping_sub(");
+                indented_push!("point_left!(");
                 push_str!(&offset.to_string());
                 push_str!(");\n");
             }
             Instruction::Increment(increment) => {
-                indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } += ");
+                indented_push!("increment!(");
                 push_str!(&increment.to_string());
-                push_str!(";\n");
+                push_str!(");\n");
             }
             Instruction::Decrement(decrement) => {
-                indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } -= ");
+                indented_push!("decrement!(");
                 push_str!(&decrement.to_string());
-                push_str!(";\n");
+                push_str!(");\n");
             }
             Instruction::SetZero => {
-                indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } = Wrapping(0);\n");
+                indented_push!("set_zero!();\n");
             }
             Instruction::LoopStart(_loop_end) => {
-                indented_push!("while unsafe { memory.get_unchecked(pointer).0 } != 0 {\n");
+                indented_push!("while cell_is_not_zero!() {\n");
                 indent_level += 1;
             }
             Instruction::LoopEnd(_loop_start) => {
@@ -88,21 +156,27 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 indented_push!("}\n");
             }
             Instruction::IncrementLoop(value) => {
-                indented_push!("let cell = unsafe { memory.get_unchecked_mut(pointer) };\n");
+                indented_push!("let cell = mut_cell!();\n");
 
                 indented_push!("if cell.0 % ");
                 push_str!(&value.to_string());
                 push_str!(" == 0 {\n");
+
                 indent_level += 1;
                 indented_push!("*cell = Wrapping(0)\n");
                 indent_level -= 1;
+
                 indented_push!("} else {\n");
+
                 indent_level += 1;
                 indented_push!("panic!(\"Infinite loop detected\")\n");
                 indent_level -= 1;
+
                 indented_push!("}\n");
             }
             Instruction::MultiplyForward(offset, multiplier) => {
+                indented_push!("let cell = *cell!();\n");
+
                 indented_push!("if pointer + ");
                 push_str!(&offset.to_string());
                 push_str!(" >= memory.len() {\n");
@@ -115,10 +189,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
 
                 indented_push!("}\n");
 
-                indented_push!("let cell = *unsafe { memory.get_unchecked(pointer) };\n");
-                indented_push!("*unsafe { memory.get_unchecked_mut(pointer + ");
+                indented_push!("*mut_cell!(pointer + ");
                 push_str!(&offset.to_string());
-                push_str!(") } += cell");
+                push_str!(") += cell");
                 if *multiplier != 1 {
                     push_str!(" * Wrapping(");
                     push_str!(&multiplier.to_string());
@@ -127,7 +200,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 push_str!(";\n");
             }
             Instruction::ForwardLoop(offset) => {
-                indented_push!("while unsafe { memory.get_unchecked(pointer).0 } != 0 {\n");
+                indented_push!("while cell_is_not_zero!() {\n");
                 indent_level += 1;
 
                 indent!();
@@ -137,25 +210,25 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 indented_push!("}\n");
             }
             Instruction::BackwardLoop(offset) => {
-                indented_push!(
-                    "while unsafe { memory.get_unchecked(pointer).0 } != 0 {pointer -= "
-                );
+                indented_push!("while cell_is_not_zero!() {\n");
+                indent_level += 1;
+
+                indented_push!("point_left!(");
                 push_str!(&offset.to_string());
-                push_str!("}\n");
+                push_str!(")\n");
+
+                indent_level -= 1;
+                indented_push!("}\n");
             }
             Instruction::Output => {
-                indented_push!(
-                    "print!(\"{}\", unsafe { memory.get_unchecked(pointer).0 } as char);\n"
-                );
+                indented_push!("output!();\n");
             }
             Instruction::Input => {
                 indented_push!("let mut input: [u8; 1] = [0; 1];\n");
 
                 indented_push!("stdin.read_exact(&mut input).unwrap();\n");
 
-                indented_push!(
-                    "*unsafe { memory.get_unchecked_mut(pointer) } = Wrapping(input[0]);\n"
-                );
+                indented_push!("*mut_cell!() = Wrapping(input[0]);\n");
             }
             Instruction::Stop => break,
         }
