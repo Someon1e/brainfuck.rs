@@ -35,7 +35,7 @@ fn main() {
 
         macro_rules! ask {
             ($question:expr) => {{
-                write!(stdout, "{}", $question).unwrap();
+                write!(stdout, "\x1b[37m{}\x1b[0m", $question).unwrap();
                 stdout.flush().unwrap();
 
                 let mut input = String::new();
@@ -74,5 +74,7 @@ fn main() {
         fs::write("output.rs", to_rust(compiled)).unwrap();
     }
 
-    println!("Elapsed time: {:.2?}", before.elapsed());
+    let mut stdout = stdout().lock();
+    stdout.flush().unwrap();
+    write!(stdout, "\x1b[37mElapsed time: {:.2?}\x1b[0m", before.elapsed()).unwrap();
 }
