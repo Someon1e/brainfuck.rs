@@ -8,7 +8,7 @@ cargo install --git https://github.com/Someon1e/brainfuck.rs brainfuck
 ```
 
 # Usage
-![image](https://github.com/Someon1e/brainfuck.rs/assets/142684596/d2579428-7875-4389-89fc-41d6aac9b95f)
+![image](https://github.com/Someon1e/brainfuck.rs/assets/142684596/e176886e-f237-4519-8a71-f2746fac718c)
 
 # How?
 It works by first processing the brainfuck program into tokens.
