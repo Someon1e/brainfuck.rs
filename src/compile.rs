@@ -114,6 +114,7 @@ impl<'a> Compiler<'a> {
         let loop_end = self.instructions.len(); // Index of loop end instruction
 
         if loop_end - loop_start - 1 == 0 {
+            self.instructions.remove(loop_start);
             return;
         }
         if loop_end - loop_start - 1 == 1 {
