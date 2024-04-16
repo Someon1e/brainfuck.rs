@@ -76,5 +76,10 @@ fn main() {
 
     let mut stdout = stdout().lock();
     stdout.flush().unwrap();
-    write!(stdout, "\x1b[37mElapsed time: {:.2?}\x1b[0m", before.elapsed()).unwrap();
+    write!(
+        stdout,
+        "\x1b[37mElapsed time: {:.2?}\x1b[0m",
+        before.elapsed()
+    )
+    .unwrap();
 }

@@ -127,13 +127,12 @@ impl<'a> Compiler<'a> {
                     _ => {}
                 }
                 if count == 0 {
-                    return
+                    return;
                 }
             }
             panic!("Unclosed loop")
         } else {
-            self.loop_stack
-                .push(self.instructions.len());
+            self.loop_stack.push(self.instructions.len());
             self.instructions.push(Instruction::LoopStart(0)); // temp 0
             self.cell_guarantee = None;
         }
