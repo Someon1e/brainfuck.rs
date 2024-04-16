@@ -9,6 +9,7 @@ pub enum Instruction {
     Decrement(u8),
 
     SetZero,
+    SetCell(u8),
     IncrementLoop(u8),
 
     MultiplyForward(usize, u8),
@@ -36,9 +37,10 @@ enum CompilingInstruction {
 pub struct Compiler<'a> {
     tokens: Box<dyn Iterator<Item = Token> + 'a>,
     instructions: Vec<Instruction>,
-    value: isize,
     loop_stack: Vec<usize>,
     compiling_instruction: CompilingInstruction,
+    value: isize,
+    cell_guarantee: Option<u8>,
 }
 
 impl<'a> Compiler<'a> {
@@ -49,13 +51,13 @@ impl<'a> Compiler<'a> {
             loop_stack: vec![],
             compiling_instruction: CompilingInstruction::None,
             value: 0,
+            cell_guarantee: Some(0),
         }
     }
     fn compile_compiling_instruction(&mut self) {
-        if self.compiling_instruction == CompilingInstruction::None {
-            return;
-        }
         match self.compiling_instruction {
+            CompilingInstruction::None => return,
+
             CompilingInstruction::Move => {
                 if self.value != 0 {
                     if self.value.is_positive() {
@@ -65,20 +67,26 @@ impl<'a> Compiler<'a> {
                         self.instructions
                             .push(Instruction::Backward(self.value.unsigned_abs()));
                     }
+                    self.cell_guarantee = None;
                 }
             }
             CompilingInstruction::Increment => {
                 if self.value != 0 {
-                    if self.value.is_positive() {
+                    if let Some(cell_guarantee) = self.cell_guarantee {
+                        self.cell_guarantee = Some(((cell_guarantee as isize) + self.value) as u8);
                         self.instructions
-                            .push(Instruction::Increment(self.value as u8));
+                            .push(Instruction::SetCell(self.cell_guarantee.unwrap()));
                     } else {
-                        self.instructions
-                            .push(Instruction::Decrement(self.value.unsigned_abs() as u8));
+                        if self.value.is_positive() {
+                            self.instructions
+                                .push(Instruction::Increment(self.value as u8));
+                        } else {
+                            self.instructions
+                                .push(Instruction::Decrement(self.value.unsigned_abs() as u8));
+                        }
                     }
                 }
             }
-            CompilingInstruction::None => unreachable!(),
         };
         self.compiling_instruction = CompilingInstruction::None;
         self.value = 0;
@@ -106,16 +114,37 @@ impl<'a> Compiler<'a> {
         };
     }
     fn start_loop(&mut self) {
-        self.loop_stack.push(self.instructions.len());
-        self.instructions.push(Instruction::LoopStart(0)); // temp 0
+        if self.cell_guarantee == Some(0) {
+            let mut count = 1;
+            while let Some(token) = self.tokens.next() {
+                match token {
+                    Token::LoopStart => {
+                        count += 1;
+                    }
+                    Token::LoopEnd => {
+                        count -= 1;
+                    }
+                    _ => {}
+                }
+                if count == 0 {
+                    return
+                }
+            }
+            panic!("Unclosed loop")
+        } else {
+            self.loop_stack
+                .push(self.instructions.len());
+            self.instructions.push(Instruction::LoopStart(0)); // temp 0
+            self.cell_guarantee = None;
+        }
     }
     fn end_loop(&mut self) {
         let loop_start = self.loop_stack.pop().expect("loop end without start"); // Index of loop start instruction
+
         let loop_end = self.instructions.len(); // Index of loop end instruction
 
         if loop_end - loop_start - 1 == 0 {
-            // TODO: only remove instruction if cell is guaranteed to be 0
-            self.instructions.remove(loop_start);
+            self.instructions.push(Instruction::LoopEnd(loop_start + 1));
             return;
         }
         if loop_end - loop_start - 1 == 1 {
@@ -203,6 +232,8 @@ impl<'a> Compiler<'a> {
                 self.instructions[loop_start] = Instruction::LoopStart(loop_end + 1);
             }
         };
+
+        self.cell_guarantee = Some(0)
     }
 
     pub fn compile(&mut self) -> &Vec<Instruction> {
@@ -222,6 +253,7 @@ impl<'a> Compiler<'a> {
                 Token::Input => {
                     self.compile_compiling_instruction();
                     self.instructions.push(Instruction::Input);
+                    self.cell_guarantee = None;
                 }
                 Token::Output => {
                     self.compile_compiling_instruction();

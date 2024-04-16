@@ -80,9 +80,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
     );
 
     push_str!(
-        "\tmacro_rules! set_zero {
-\t\t() => {
-\t\t\t*mut_cell!() = Wrapping(0);
+        "\tmacro_rules! set_cell {
+\t\t($number:expr) => {
+\t\t\t*mut_cell!() = Wrapping($number);
 \t\t};
 \t}\n"
     );
@@ -145,7 +145,12 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 push_str!(");\n");
             }
             Instruction::SetZero => {
-                indented_push!("set_zero!();\n");
+                indented_push!("set_cell!(0);\n");
+            }
+            Instruction::SetCell(value) => {
+                indented_push!("set_cell!(");
+                push_str!(&value.to_string());
+                push_str!(");\n");
             }
             Instruction::LoopStart(_loop_end) => {
                 indented_push!("while cell_is_not_zero!() {\n");
