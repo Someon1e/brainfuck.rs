@@ -77,13 +77,11 @@ impl<'a> Compiler<'a> {
                         self.instructions
                             .push(Instruction::SetCell(self.cell_guarantee.unwrap()));
                     } else {
-                        if self.value.is_positive() {
-                            self.instructions
-                                .push(Instruction::Increment(self.value as u8));
+                        self.instructions.push(if self.value.is_positive() {
+                            Instruction::Increment(self.value as u8)
                         } else {
-                            self.instructions
-                                .push(Instruction::Decrement(self.value.unsigned_abs() as u8));
-                        }
+                            Instruction::Decrement(self.value.unsigned_abs() as u8)
+                        });
                     }
                 }
             }
@@ -116,7 +114,7 @@ impl<'a> Compiler<'a> {
     fn start_loop(&mut self) {
         if self.cell_guarantee == Some(0) {
             let mut count = 1;
-            while let Some(token) = self.tokens.next() {
+            for token in self.tokens.by_ref() {
                 match token {
                     Token::LoopStart => {
                         count += 1;
@@ -232,7 +230,7 @@ impl<'a> Compiler<'a> {
             }
         };
 
-        self.cell_guarantee = Some(0)
+        self.cell_guarantee = Some(0);
     }
 
     pub fn compile(&mut self) -> &Vec<Instruction> {
