@@ -233,7 +233,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
 
                 indented_push!("stdin.read_exact(&mut input).unwrap();\n");
 
-                indented_push!("*mut_cell!() = Wrapping(input[0]);\n");
+                indented_push!("set_cell!(input[0]);\n");
             }
             Instruction::Stop => break,
         }
