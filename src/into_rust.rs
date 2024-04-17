@@ -1,17 +1,17 @@
+use core::iter;
+
 use crate::MEMORY_RESIZE_AMOUNT;
 use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
 
 #[allow(clippy::too_many_lines)]
 pub fn to_rust(instructions: &[Instruction]) -> String {
-    let mut code = String::with_capacity(256);
+    let mut code = String::with_capacity(2048);
 
     let mut indent_level = 0;
     macro_rules! indent {
         () => {
-            for _ in 0..indent_level {
-                code.push('\t');
-            }
-        };
+            code.extend(iter::repeat('\t').take(indent_level));
+        }
     }
     macro_rules! push_str {
         ($text:expr) => {
