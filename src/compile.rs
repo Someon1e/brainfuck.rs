@@ -13,6 +13,7 @@ pub enum Instruction {
     IncrementLoop(u8),
 
     MultiplyForward(usize, u8),
+    MultiplyBackward(usize, u8),
 
     ForwardLoop(usize),
     BackwardLoop(usize),
@@ -172,51 +173,74 @@ impl<'a> Compiler<'a> {
                 }
             }
         } else {
-            let mut multipliers = None;
+            let multipliers = 'out: {
+                let mut all_increments = rustc_hash::FxHashMap::default();
+                let mut total_offset: isize = 0;
+                let mut total_increment: i32 = 0;
 
-            if matches!(
-                *self.instructions.get(loop_start + 1).unwrap(),
-                Instruction::Decrement(1)
-            ) {
-                let mut compiling_multiplier = 0;
-                let mut compiling_multipliers = Vec::with_capacity(2);
-                let mut total_offset = 0;
-                for index in loop_start + 2..loop_end {
-                    // Iterate all instructions inside the loop, except the first
-                    let inner = self.instructions.get(index).unwrap();
-                    match inner {
-                        Instruction::Forward(offset) | Instruction::Backward(offset) => {
-                            if compiling_multiplier != 0 {
-                                compiling_multipliers.push((total_offset, compiling_multiplier));
-                                compiling_multiplier = 0;
+                for index in loop_start + 1..loop_end {
+                    // Iterate all instructions inside the loop
+                    match self.instructions.get(index).unwrap() {
+                        inner @ (Instruction::Forward(offset) | Instruction::Backward(offset)) => {
+                            if total_increment != 0 {
+                                all_increments.insert(
+                                    total_offset,
+                                    all_increments.get(&total_offset).unwrap_or(&0)
+                                        + total_increment,
+                                );
+                                total_increment = 0;
                             }
-
                             if matches!(inner, Instruction::Forward(_)) {
-                                total_offset += offset;
+                                total_offset += *offset as isize;
                             } else {
-                                total_offset -= offset;
-
-                                if index == loop_end - 1 // This should be the last instruction
-                                && total_offset == 0 // and we should be at the starting cell
-                                && !compiling_multipliers.is_empty()
-                                // and there should be multipliers
-                                {
-                                    multipliers = Some(compiling_multipliers);
-                                }
-                                break;
+                                total_offset -= *offset as isize;
                             }
                         }
-                        Instruction::Increment(increment) => compiling_multiplier += increment,
-                        _ => break,
+                        Instruction::Increment(increment) => {
+                            total_increment += *increment as i32;
+                        }
+                        Instruction::Decrement(decrement) => {
+                            total_increment -= *decrement as i32;
+                        }
+                        _ => break 'out None,
                     }
                 }
-            }
+                if total_increment != 0 {
+                    all_increments.insert(
+                        total_offset,
+                        all_increments.get(&total_offset).unwrap_or(&0) + total_increment,
+                    );
+                    #[allow(unused_assignments)]
+                    {
+                        total_increment = 0;
+                    }
+                }
+
+                if !all_increments.is_empty() && // There are multipliers
+                    total_offset == 0 && // We are on the starting cell
+                    all_increments.remove(&0) == Some(-1)
+                // It decrements the starting cell
+                {
+                    break 'out Some(all_increments);
+                }
+
+                None
+            };
 
             if let Some(multipliers) = multipliers {
                 self.instructions.truncate(loop_start);
                 for (offset, multiplier) in multipliers {
-                    self.instructions
-                        .push(Instruction::MultiplyForward(offset, multiplier));
+                    if offset.is_positive() {
+                        self.instructions.push(Instruction::MultiplyForward(
+                            offset as usize,
+                            multiplier as u8,
+                        ));
+                    } else {
+                        self.instructions.push(Instruction::MultiplyBackward(
+                            offset.abs() as usize,
+                            multiplier as u8,
+                        ));
+                    }
                 }
                 self.instructions.push(Instruction::SetZero);
             } else {

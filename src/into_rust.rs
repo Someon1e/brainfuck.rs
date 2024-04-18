@@ -204,6 +204,19 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 }
                 push_str!(";\n");
             }
+            Instruction::MultiplyBackward(offset, multiplier) => {
+                indented_push!("let cell = *cell!();\n");
+
+                indented_push!("*mut_cell!(pointer - ");
+                push_str!(&offset.to_string());
+                push_str!(") += cell");
+                if *multiplier != 1 {
+                    push_str!(" * Wrapping(");
+                    push_str!(&multiplier.to_string());
+                    code.push(')');
+                }
+                push_str!(";\n");
+            }
             Instruction::ForwardLoop(offset) => {
                 indented_push!("while cell_is_not_zero!() {\n");
                 indent_level += 1;

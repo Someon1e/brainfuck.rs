@@ -61,6 +61,13 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
                     cell * Wrapping(*multiplier);
             }
 
+            Instruction::MultiplyBackward(offset, multiplier) => {
+                let cell = unsafe { *memory.get_unchecked(pointer) };
+
+                *unsafe { memory.get_unchecked_mut(pointer - offset) } +=
+                    cell * Wrapping(*multiplier);
+            }
+
             Instruction::ForwardLoop(offset) => {
                 while unsafe { memory.get_unchecked(pointer).0 } != 0 {
                     pointer += offset;
