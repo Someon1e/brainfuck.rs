@@ -11,7 +11,7 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
     macro_rules! indent {
         () => {
             code.extend(iter::repeat('\t').take(indent_level));
-        }
+        };
     }
     macro_rules! push_str {
         ($text:expr) => {

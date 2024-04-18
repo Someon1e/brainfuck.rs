@@ -185,31 +185,26 @@ impl<'a> Compiler<'a> {
                     // Iterate all instructions inside the loop, except the first
                     let inner = self.instructions.get(index).unwrap();
                     match inner {
-                        Instruction::Forward(offset) => {
+                        Instruction::Forward(offset) | Instruction::Backward(offset) => {
                             if compiling_multiplier != 0 {
                                 compiling_multipliers.push((total_offset, compiling_multiplier));
                                 compiling_multiplier = 0;
                             }
-                            total_offset += offset;
-                        }
-                        Instruction::Backward(offset) => {
-                            if compiling_multiplier != 0 {
-                                compiling_multipliers.push((total_offset, compiling_multiplier));
 
-                                #[allow(unused_assignments)]
-                                {
-                                    compiling_multiplier = 0;
-                                }
-                            }
+                            if matches!(inner, Instruction::Forward(_)) {
+                                total_offset += offset;
+                            } else {
+                                total_offset -= offset;
 
-                            if index == loop_end - 1 // This should be the last instruction
-                                && total_offset == *offset // and should undo all the offsets
+                                if index == loop_end - 1 // This should be the last instruction
+                                && total_offset == 0 // and we should be at the starting cell
                                 && !compiling_multipliers.is_empty()
-                            // and there should be multipliers
-                            {
-                                multipliers = Some(compiling_multipliers);
+                                // and there should be multipliers
+                                {
+                                    multipliers = Some(compiling_multipliers);
+                                }
+                                break;
                             }
-                            break;
                         }
                         Instruction::Increment(increment) => compiling_multiplier += increment,
                         _ => break,
