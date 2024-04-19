@@ -229,14 +229,12 @@ impl<'a> Compiler<'a> {
                 self.instructions.truncate(loop_start);
                 for (offset, multiplier) in multipliers {
                     if offset.is_positive() {
-                        self.instructions.push(Instruction::MultiplyForward(
-                            offset as usize,
-                            multiplier as u8,
-                        ));
+                        self.instructions
+                            .push(Instruction::MultiplyForward(offset as usize, multiplier));
                     } else {
                         self.instructions.push(Instruction::MultiplyBackward(
-                            offset.abs() as usize,
-                            multiplier as u8,
+                            offset.unsigned_abs(),
+                            multiplier,
                         ));
                     }
                 }
