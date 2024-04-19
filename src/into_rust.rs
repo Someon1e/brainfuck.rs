@@ -72,14 +72,6 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
     );
 
     push_str!(
-        "\tmacro_rules! decrement {
-\t\t($number:expr) => {
-\t\t\t*mut_cell!() -= $number;
-\t\t};
-\t}\n"
-    );
-
-    push_str!(
         "\tmacro_rules! set_cell {
 \t\t($number:expr) => {
 \t\t\t*mut_cell!() = Wrapping($number);
