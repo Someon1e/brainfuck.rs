@@ -139,11 +139,6 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 push_str!(&increment.to_string());
                 push_str!(");\n");
             }
-            Instruction::Decrement(decrement) => {
-                indented_push!("decrement!(");
-                push_str!(&decrement.to_string());
-                push_str!(");\n");
-            }
             Instruction::SetZero => {
                 indented_push!("set_cell!(0);\n");
             }

@@ -6,7 +6,6 @@ pub enum Instruction {
     Backward(usize),
 
     Increment(u8),
-    Decrement(u8),
 
     SetZero,
     SetCell(u8),
@@ -81,7 +80,7 @@ impl<'a> Compiler<'a> {
                         self.instructions.push(if self.value.is_positive() {
                             Instruction::Increment(self.value as u8)
                         } else {
-                            Instruction::Decrement(self.value.unsigned_abs() as u8)
+                            Instruction::Increment(0u8.wrapping_sub(self.value.unsigned_abs() as u8))
                         });
                     }
                 }
@@ -148,10 +147,10 @@ impl<'a> Compiler<'a> {
         if loop_end - loop_start - 1 == 1 {
             // Only one type of instruction there
             self.instructions[loop_start] = match *self.instructions.get(loop_start + 1).unwrap() {
-                Instruction::Decrement(value) | Instruction::Increment(value) => {
+                Instruction::Increment(value) => {
                     self.instructions.remove(loop_start + 1);
 
-                    if value == 1 {
+                    if value == 1 || value == u8::MAX {
                         Instruction::SetZero
                     } else {
                         Instruction::IncrementLoop(value)
@@ -176,7 +175,7 @@ impl<'a> Compiler<'a> {
             let multipliers = 'out: {
                 let mut all_increments = rustc_hash::FxHashMap::default();
                 let mut total_offset: isize = 0;
-                let mut total_increment: i32 = 0;
+                let mut total_increment: u8 = 0;
 
                 for index in loop_start + 1..loop_end {
                     // Iterate all instructions inside the loop
@@ -197,10 +196,7 @@ impl<'a> Compiler<'a> {
                             }
                         }
                         Instruction::Increment(increment) => {
-                            total_increment += *increment as i32;
-                        }
-                        Instruction::Decrement(decrement) => {
-                            total_increment -= *decrement as i32;
+                            total_increment += *increment;
                         }
                         _ => break 'out None,
                     }
@@ -218,7 +214,7 @@ impl<'a> Compiler<'a> {
 
                 if !all_increments.is_empty() && // There are multipliers
                     total_offset == 0 && // We are on the starting cell
-                    all_increments.remove(&0) == Some(-1)
+                    all_increments.remove(&0) == Some(u8::MAX)
                 // It decrements the starting cell
                 {
                     break 'out Some(all_increments);

@@ -38,10 +38,6 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
                 let cell = unsafe { memory.get_unchecked_mut(pointer) };
                 *cell += increment;
             }
-            Instruction::Decrement(decrement) => {
-                let cell = unsafe { memory.get_unchecked_mut(pointer) };
-                *cell -= decrement;
-            }
             Instruction::SetZero => {
                 let cell = unsafe { memory.get_unchecked_mut(pointer) };
                 *cell = Wrapping(0);
