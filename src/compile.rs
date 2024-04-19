@@ -80,7 +80,9 @@ impl<'a> Compiler<'a> {
                         self.instructions.push(if self.value.is_positive() {
                             Instruction::Increment(self.value as u8)
                         } else {
-                            Instruction::Increment(0u8.wrapping_sub(self.value.unsigned_abs() as u8))
+                            Instruction::Increment(
+                                0u8.wrapping_sub(self.value.unsigned_abs() as u8),
+                            )
                         });
                     }
                 }
