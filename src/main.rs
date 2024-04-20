@@ -1,30 +1,13 @@
 #![deny(clippy::all)]
 #![warn(clippy::pedantic)]
-#![allow(clippy::cast_possible_truncation)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::similar_names)]
 
 use std::fs;
 use std::io::{stdin, stdout, BufRead, Write};
 
-mod compile;
-use compile::Compiler;
-
-mod lexer;
-
-mod interpreter;
-use interpreter::execute;
-
-mod into_rust;
-use into_rust::to_rust;
-
-use crate::lexer::lex;
-
-/// Initial memory capacity, however memory will resize when full.
-pub const INITIAL_MEMORY_CAPACITY: usize = 32;
-
-/// When out of memory, increase size by this many bytes.
-pub const MEMORY_RESIZE_AMOUNT: usize = 16;
+use brainfuck::compile::Compiler;
+use brainfuck::interpreter::execute;
+use brainfuck::into_rust::to_rust;
+use brainfuck::lexer::lex;
 
 fn main() {
     let input;
