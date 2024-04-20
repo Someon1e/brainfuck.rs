@@ -2,13 +2,22 @@ use crate::lexer::Token;
 
 #[derive(Debug)]
 pub enum Instruction {
+    /// Move pointer right.
     Forward(usize),
+
+    /// Move pointer left.
     Backward(usize),
 
+    /// Add to cell.
     Increment(u8),
 
+    /// Zero cell.
     SetZero,
+
+    /// Sets cell.
     SetCell(u8),
+
+    /// Increment in a loop
     IncrementLoop(u8),
 
     MultiplyForward(usize, u8),
@@ -18,11 +27,16 @@ pub enum Instruction {
     BackwardLoop(usize),
 
     LoopStart(usize),
+
     LoopEnd(usize),
 
+    /// Outputs a character.
     Output,
+
+    /// Read a character from input.
     Input,
 
+    /// End of the program.
     Stop,
 }
 
@@ -34,6 +48,7 @@ enum CompilingInstruction {
     None,
 }
 
+/// Compiles tokens into instructions.
 pub struct Compiler<'a> {
     tokens: Box<dyn Iterator<Item = Token> + 'a>,
     instructions: Vec<Instruction>,

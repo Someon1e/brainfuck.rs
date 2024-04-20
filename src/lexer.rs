@@ -1,20 +1,35 @@
+/// Brainfuck token
 #[derive(Debug, PartialEq, Eq)]
 pub enum Token {
+    /// +
     Increment,
+
+    /// -
     Decrement,
 
+    /// >
     Forward,
+
+    /// <
     Backward,
 
+    /// [
     LoopStart,
+
+    /// ]
     LoopEnd,
 
+    /// .
     Output,
+
+    /// ,
     Input,
 
+    /// Any other character.
     Comment,
 }
 
+/// Maps Brainfuck into tokens.
 pub fn lex(input: &str) -> impl Iterator<Item = Token> + '_ {
     let mapped = input.chars().map(|character| match character {
         '+' => Token::Increment,

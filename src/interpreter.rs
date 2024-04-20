@@ -2,6 +2,7 @@ use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY, MEMORY_RESIZE_AMOUNT}
 use core::num::Wrapping;
 use std::io::{stdin, stdout, Read, Write};
 
+/// Interprets instructions.
 pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
     let mut stdout = stdout().lock();
     let mut stdin = stdin().lock();
