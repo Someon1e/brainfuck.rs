@@ -1,3 +1,5 @@
+use core::num::Wrapping;
+
 use crate::lexer::Token;
 
 #[derive(Debug)]
@@ -195,26 +197,24 @@ impl<'a> Compiler<'a> {
             }
         } else {
             let multipliers = 'out: {
-                let mut all_increments: Vec<(isize, u8)> = Vec::new();
+                let mut all_increments: Vec<(isize, Wrapping<u8>)> = Vec::new();
                 let mut total_offset: isize = 0;
-                let mut total_increment: u8 = 0;
+                let mut total_increment: Wrapping<u8> = Wrapping(0);
 
                 for index in loop_start + 1..loop_end {
                     // Iterate all instructions inside the loop
                     match self.instructions.get(index).unwrap() {
                         inner @ (Instruction::Forward(offset) | Instruction::Backward(offset)) => {
-                            if total_increment != 0 {
-                                let already = all_increments.iter().find_map(|t| {
-                                    if t.0 == total_offset {
-                                        Some(t.1)
-                                    } else {
-                                        None
-                                    }
-                                });
+                            if total_increment != Wrapping(0) {
+                                let already =
+                                    all_increments.iter().position(|t| t.0 == total_offset);
+                                if let Some(already) = already {
+                                    all_increments.get_mut(already).unwrap().1 += total_increment;
+                                } else {
+                                    all_increments.push((total_offset, total_increment));
+                                }
 
-                                all_increments
-                                    .push((total_offset, already.unwrap_or(0) + total_increment));
-                                total_increment = 0;
+                                total_increment = Wrapping(0);
                             }
                             if matches!(inner, Instruction::Forward(_)) {
                                 total_offset += *offset as isize;
@@ -223,25 +223,22 @@ impl<'a> Compiler<'a> {
                             }
                         }
                         Instruction::Increment(increment) => {
-                            total_increment += *increment;
+                            total_increment += increment;
                         }
                         _ => break 'out None,
                     }
                 }
-                if total_increment != 0 {
-                    let already = all_increments.iter().find_map(|t| {
-                        if t.0 == total_offset {
-                            Some(t.1)
-                        } else {
-                            None
-                        }
-                    });
-
-                    all_increments.push((total_offset, already.unwrap_or(0) + total_increment));
+                if total_increment != Wrapping(0) {
+                    let already = all_increments.iter().position(|t| t.0 == total_offset);
+                    if let Some(already) = already {
+                        all_increments.get_mut(already).unwrap().1 += total_increment;
+                    } else {
+                        all_increments.push((total_offset, total_increment));
+                    }
 
                     #[allow(unused_assignments)]
                     {
-                        total_increment = 0;
+                        total_increment = Wrapping(0);
                     }
                 }
 
@@ -251,7 +248,7 @@ impl<'a> Compiler<'a> {
                 {
                     for (index, increment) in all_increments.iter().enumerate() {
                         if increment.0 == 0 {
-                            if increment.1 == u8::MAX {
+                            if increment.1 == Wrapping(u8::MAX) {
                                 all_increments.swap_remove(index);
 
                                 break 'out Some(all_increments);
@@ -267,15 +264,17 @@ impl<'a> Compiler<'a> {
             if let Some(mut multipliers) = multipliers {
                 self.instructions.truncate(loop_start);
 
+                multipliers.retain_mut(|t| t.1 != Wrapping(0));
+
                 multipliers.sort_unstable_by_key(|t| -t.0);
                 for (offset, multiplier) in multipliers {
                     if offset.is_positive() {
                         self.instructions
-                            .push(Instruction::MultiplyForward(offset as usize, multiplier));
+                            .push(Instruction::MultiplyForward(offset as usize, multiplier.0));
                     } else {
                         self.instructions.push(Instruction::MultiplyBackward(
                             offset.unsigned_abs(),
-                            multiplier,
+                            multiplier.0,
                         ));
                     }
                 }
@@ -323,5 +322,121 @@ impl<'a> Compiler<'a> {
         assert!(self.loop_stack.is_empty(), "Unclosed loop");
 
         &self.instructions
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        compile::{Compiler, Instruction},
+        lexer::lex,
+    };
+
+    macro_rules! compile {
+        ($code:expr) => {
+            Compiler::new(lex($code)).compile()
+        };
+    }
+
+    #[test]
+    fn set_zero_works() {
+        assert!(
+            matches!(compile!(",[-].")[1], Instruction::SetZero),
+            "did not optimise zero"
+        );
+    }
+
+    #[test]
+    fn dead_code_removed() {
+        assert!(
+            compile!(".[+].[-].[>].-+><.")
+                .iter()
+                .all(|instruction| matches!(instruction, Instruction::Output | Instruction::Stop)),
+            "did not remove dead code"
+        );
+    }
+
+    #[test]
+    fn backward_works() {
+        assert!(
+            matches!(compile!("<<<")[0], Instruction::Backward(3)),
+            "did not go backward"
+        );
+        assert!(
+            matches!(compile!("<<<<<")[0], Instruction::Backward(5)),
+            "did not go backward"
+        );
+    }
+
+    #[test]
+    fn forward_works() {
+        assert!(
+            matches!(compile!(">>>")[0], Instruction::Forward(3)),
+            "did not go forward"
+        );
+        assert!(
+            matches!(compile!(">>>>>")[0], Instruction::Forward(5)),
+            "did not go forward"
+        );
+    }
+
+    #[test]
+    fn decrement_works() {
+        assert!(
+            matches!(compile!(">-")[1], Instruction::Increment(u8::MAX)),
+            "did not decrement"
+        );
+    }
+
+    #[test]
+    fn multiply_forward_works() {
+        assert!(
+            matches!(
+                compile!(",[->>+++<<]")[1],
+                Instruction::MultiplyForward(2, 3)
+            ),
+            "did not detect multiply"
+        );
+        assert!(
+            matches!(
+                compile!(",[>>+++<<-]")[1],
+                Instruction::MultiplyForward(2, 3)
+            ),
+            "did not detect multiply"
+        );
+        assert!(
+            matches!(
+                compile!(
+                    "
+                ,
+                [
+                    >>
+                    +++
+                    >>
+                    +
+                    <<<<
+
+                    +
+
+                    >>>>
+                    -
+                    <<<<
+
+                    --
+                ]
+                "
+                )[1],
+                Instruction::MultiplyForward(2, 3)
+            ),
+            "did not detect multiply"
+        );
+
+        assert!(
+            !matches!(
+                compile!(",[>>++<-]")[1],
+                Instruction::MultiplyForward(..)
+            ),
+            "false positive"
+        );
     }
 }
