@@ -17,17 +17,22 @@ pub enum Instruction {
     /// Sets cell.
     SetCell(u8),
 
-    /// Increment in a loop
+    /// Increment in a loop.
     IncrementLoop(u8),
 
     MultiplyForward(usize, u8),
     MultiplyBackward(usize, u8),
 
+    /// Move pointer right until cell is 0.
     ForwardLoop(usize),
+
+    /// Move pointer left until cell is 0.
     BackwardLoop(usize),
 
+    /// Jumps if cell is 0.
     LoopStart(usize),
 
+    /// Jumps if cell is not 0.
     LoopEnd(usize),
 
     /// Outputs a character.
