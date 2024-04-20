@@ -175,7 +175,7 @@ impl<'a> Compiler<'a> {
             }
         } else {
             let multipliers = 'out: {
-                let mut all_increments = rustc_hash::FxHashMap::default();
+                let mut all_increments: Vec<(isize, u8)> = Vec::new();
                 let mut total_offset: isize = 0;
                 let mut total_increment: u8 = 0;
 
@@ -184,11 +184,16 @@ impl<'a> Compiler<'a> {
                     match self.instructions.get(index).unwrap() {
                         inner @ (Instruction::Forward(offset) | Instruction::Backward(offset)) => {
                             if total_increment != 0 {
-                                all_increments.insert(
-                                    total_offset,
-                                    all_increments.get(&total_offset).unwrap_or(&0)
-                                        + total_increment,
-                                );
+                                let already = all_increments.iter().find_map(|t| {
+                                    if t.0 == total_offset {
+                                        Some(t.1)
+                                    } else {
+                                        None
+                                    }
+                                });
+
+                                all_increments
+                                    .push((total_offset, already.unwrap_or(0) + total_increment));
                                 total_increment = 0;
                             }
                             if matches!(inner, Instruction::Forward(_)) {
@@ -204,10 +209,16 @@ impl<'a> Compiler<'a> {
                     }
                 }
                 if total_increment != 0 {
-                    all_increments.insert(
-                        total_offset,
-                        all_increments.get(&total_offset).unwrap_or(&0) + total_increment,
-                    );
+                    let already = all_increments.iter().find_map(|t| {
+                        if t.0 == total_offset {
+                            Some(t.1)
+                        } else {
+                            None
+                        }
+                    });
+
+                    all_increments.push((total_offset, already.unwrap_or(0) + total_increment));
+
                     #[allow(unused_assignments)]
                     {
                         total_increment = 0;
@@ -215,18 +226,28 @@ impl<'a> Compiler<'a> {
                 }
 
                 if !all_increments.is_empty() && // There are multipliers
-                    total_offset == 0 && // We are on the starting cell
-                    all_increments.remove(&0) == Some(u8::MAX)
-                // It decrements the starting cell
+                    total_offset == 0
+                // We are on the starting cell
                 {
-                    break 'out Some(all_increments);
+                    for (index, increment) in all_increments.iter().enumerate() {
+                        if increment.0 == 0 {
+                            if increment.1 == u8::MAX {
+                                all_increments.swap_remove(index);
+
+                                break 'out Some(all_increments);
+                            }
+                            break;
+                        }
+                    }
                 }
 
                 None
             };
 
-            if let Some(multipliers) = multipliers {
+            if let Some(mut multipliers) = multipliers {
                 self.instructions.truncate(loop_start);
+
+                multipliers.sort_unstable_by_key(|t| -t.0);
                 for (offset, multiplier) in multipliers {
                     if offset.is_positive() {
                         self.instructions
