@@ -14,9 +14,6 @@ pub enum Instruction {
     /// Add to cell.
     Increment(u8),
 
-    /// Zero cell.
-    SetZero,
-
     /// Sets cell.
     SetCell(u8),
 
@@ -177,7 +174,7 @@ impl<'a> Compiler<'a> {
                     self.instructions.remove(loop_start + 1);
 
                     if value == 1 || value == u8::MAX {
-                        Instruction::SetZero
+                        Instruction::SetCell(0)
                     } else {
                         Instruction::IncrementLoop(value)
                     }
@@ -280,7 +277,7 @@ impl<'a> Compiler<'a> {
                         ));
                     }
                 }
-                self.instructions.push(Instruction::SetZero);
+                self.instructions.push(Instruction::SetCell(0));
             } else {
                 self.instructions.push(Instruction::LoopEnd(loop_start + 1));
                 self.instructions[loop_start] = Instruction::LoopStart(loop_end + 1);
@@ -342,9 +339,9 @@ mod tests {
     }
 
     #[test]
-    fn set_zero_works() {
+    fn set_works() {
         assert!(
-            matches!(compile!(",[-].")[1], Instruction::SetZero),
+            matches!(compile!(",[-].")[1], Instruction::SetCell(0)),
             "did not optimise zero"
         );
     }
