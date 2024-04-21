@@ -19,6 +19,9 @@ pub mod interpreter;
 /// Compile instructions to Rust.
 pub mod into_rust;
 
+/// Compile instructions to C.
+pub mod into_c;
+
 /// Initial memory capacity, however memory will resize when full.
 pub const INITIAL_MEMORY_CAPACITY: usize = 32;
 

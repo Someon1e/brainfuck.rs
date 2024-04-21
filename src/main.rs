@@ -6,8 +6,10 @@ use std::io::{stdin, stdout, BufRead, Write};
 
 use brainfuck::compile::Compiler;
 use brainfuck::interpreter::execute;
-use brainfuck::into_rust::to_rust;
 use brainfuck::lexer::lex;
+
+use brainfuck::into_c::to_c;
+use brainfuck::into_rust::to_rust;
 
 fn main() {
     let input;
@@ -36,10 +38,11 @@ fn main() {
             panic!("Invalid input")
         }
 
-        option = ask!("(A) Interpret or (B) transpile into rust? ");
-        if option != "A" {
-            assert_eq!(option, "B", "Invalid input");
-        };
+        option = ask!("(A) Interpret or (B) transpile into rust? or (C) transpile into C? ");
+        assert!(
+            option == "A" || option == "B" || option == "C",
+            "Invalid input"
+        );
     }
 
     let before = std::time::Instant::now();
@@ -53,8 +56,10 @@ fn main() {
 
     if option == "A" {
         execute(compiled);
-    } else {
-        fs::write("output.rs", to_rust(compiled)).unwrap();
+    } else if option == "B" {
+        fs::write("r_output.rs", to_rust(compiled)).unwrap();
+    } else if option == "C" {
+        fs::write("c_output.c", to_c(compiled)).unwrap();
     }
 
     let mut stdout = stdout().lock();

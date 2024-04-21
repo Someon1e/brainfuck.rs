@@ -50,7 +50,10 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
                 let cell = unsafe { *memory.get_unchecked(pointer) };
                 if cell != Wrapping(0) {
                     if pointer + *offset as usize >= memory.len() {
-                        memory.resize(pointer + *offset as usize + MEMORY_RESIZE_AMOUNT, Wrapping(0));
+                        memory.resize(
+                            pointer + *offset as usize + MEMORY_RESIZE_AMOUNT,
+                            Wrapping(0),
+                        );
                     }
 
                     *unsafe { memory.get_unchecked_mut(pointer + *offset as usize) } +=

@@ -164,7 +164,8 @@ impl<'a> Compiler<'a> {
         let loop_end = self.instructions.len(); // Index of loop end instruction
 
         if loop_end - loop_start - 1 == 0 {
-            self.instructions.push(Instruction::LoopEnd((loop_start + 1) as u32));
+            self.instructions
+                .push(Instruction::LoopEnd((loop_start + 1) as u32));
             return;
         }
         if loop_end - loop_start - 1 == 1 {
@@ -190,7 +191,8 @@ impl<'a> Compiler<'a> {
                     Instruction::BackwardLoop(offset)
                 }
                 _ => {
-                    self.instructions.push(Instruction::LoopEnd((loop_start + 1) as u32));
+                    self.instructions
+                        .push(Instruction::LoopEnd((loop_start + 1) as u32));
                     Instruction::LoopStart((loop_end + 1) as u32)
                 }
             }
@@ -279,7 +281,8 @@ impl<'a> Compiler<'a> {
                 }
                 self.instructions.push(Instruction::SetCell(0));
             } else {
-                self.instructions.push(Instruction::LoopEnd((loop_start + 1) as u32));
+                self.instructions
+                    .push(Instruction::LoopEnd((loop_start + 1) as u32));
                 self.instructions[loop_start] = Instruction::LoopStart((loop_end + 1) as u32);
             }
         };

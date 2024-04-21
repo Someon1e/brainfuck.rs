@@ -1,6 +1,6 @@
 # Overview
-brainfuck.rs is a fast [brainfuck](https://en.wikipedia.org/wiki/Brainfuck) executor in Rust.
-It includes an interpreter and a brainfuck-to-rust transpiler.
+brainfuck.rs is a fast [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck) executor in Rust.
+It includes an interpreter, a Brainfuck-to-Rust transpiler, and a Brainfuck-to-C transpiler.
 
 # Install
 ```
