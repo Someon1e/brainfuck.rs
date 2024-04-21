@@ -159,14 +159,6 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                 indented_push!("}\n");
 
                 indented_push!("*unsafe { memory.get_unchecked_mut(pointer) } = cell;\n");
-
-                /*
-                                let mut cell = unsafe { *memory.get_unchecked(pointer) };
-                while cell != Wrapping(0) {
-                    cell += *increment;
-                }
-                *unsafe { memory.get_unchecked_mut(pointer) } = cell;
-                 */
             }
             Instruction::MultiplyForward(offset, multiplier) => {
                 indented_push!("let cell = *cell!();\n");
