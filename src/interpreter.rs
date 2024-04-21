@@ -14,13 +14,13 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
     loop {
         match unsafe { instructions.get_unchecked(instruction_index) } {
             Instruction::Forward(offset) => {
-                pointer = pointer.wrapping_add(*offset);
+                pointer = pointer.wrapping_add(*offset as usize);
                 if pointer >= memory.len() {
                     memory.resize(pointer + MEMORY_RESIZE_AMOUNT, Wrapping(0));
                 }
             }
             Instruction::Backward(offset) => {
-                pointer = pointer.wrapping_sub(*offset);
+                pointer = pointer.wrapping_sub(*offset as usize);
             }
 
             Instruction::Increment(increment) => {
@@ -30,13 +30,13 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
 
             Instruction::LoopStart(loop_exit) => {
                 if unsafe { memory.get_unchecked_mut(pointer).0 } == 0 {
-                    instruction_index = *loop_exit;
+                    instruction_index = *loop_exit as usize;
                     continue;
                 }
             }
             Instruction::LoopEnd(loop_body) => {
                 if unsafe { memory.get_unchecked_mut(pointer).0 } != 0 {
-                    instruction_index = *loop_body;
+                    instruction_index = *loop_body as usize;
                     continue;
                 }
             }
@@ -49,11 +49,11 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
             Instruction::MultiplyForward(offset, multiplier) => {
                 let cell = unsafe { *memory.get_unchecked(pointer) };
                 if cell != Wrapping(0) {
-                    if pointer + offset >= memory.len() {
-                        memory.resize(pointer + offset + MEMORY_RESIZE_AMOUNT, Wrapping(0));
+                    if pointer + *offset as usize >= memory.len() {
+                        memory.resize(pointer + *offset as usize + MEMORY_RESIZE_AMOUNT, Wrapping(0));
                     }
 
-                    *unsafe { memory.get_unchecked_mut(pointer + offset) } +=
+                    *unsafe { memory.get_unchecked_mut(pointer + *offset as usize) } +=
                         cell * Wrapping(*multiplier);
                 }
             }
@@ -62,14 +62,14 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
                 let cell = unsafe { *memory.get_unchecked(pointer) };
 
                 if cell != Wrapping(0) {
-                    *unsafe { memory.get_unchecked_mut(pointer - offset) } +=
+                    *unsafe { memory.get_unchecked_mut(pointer - *offset as usize) } +=
                         cell * Wrapping(*multiplier);
                 }
             }
 
             Instruction::ForwardLoop(offset) => {
                 while unsafe { memory.get_unchecked(pointer).0 } != 0 {
-                    pointer += offset;
+                    pointer += *offset as usize;
                     if pointer >= memory.len() {
                         memory.resize(pointer + MEMORY_RESIZE_AMOUNT, Wrapping(0));
                         break;
@@ -78,7 +78,7 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
             }
             Instruction::BackwardLoop(offset) => {
                 while unsafe { memory.get_unchecked(pointer).0 } != 0 {
-                    pointer -= offset;
+                    pointer -= *offset as usize;
                 }
             }
             Instruction::Output => {

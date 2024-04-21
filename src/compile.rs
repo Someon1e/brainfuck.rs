@@ -6,10 +6,10 @@ use crate::lexer::Token;
 #[derive(Debug)]
 pub enum Instruction {
     /// Move pointer right.
-    Forward(usize),
+    Forward(u32),
 
     /// Move pointer left.
-    Backward(usize),
+    Backward(u32),
 
     /// Add to cell.
     Increment(u8),
@@ -20,21 +20,21 @@ pub enum Instruction {
     /// Increment in a loop.
     IncrementLoop(u8),
 
-    MultiplyForward(usize, u8),
+    MultiplyForward(u32, u8),
 
-    MultiplyBackward(usize, u8),
+    MultiplyBackward(u32, u8),
 
     /// Move pointer right until cell is 0.
-    ForwardLoop(usize),
+    ForwardLoop(u32),
 
     /// Move pointer left until cell is 0.
-    BackwardLoop(usize),
+    BackwardLoop(u32),
 
     /// Jumps if cell is 0.
-    LoopStart(usize),
+    LoopStart(u32),
 
     /// Jumps if cell is not 0.
-    LoopEnd(usize),
+    LoopEnd(u32),
 
     /// Outputs a character.
     Output,
@@ -60,7 +60,7 @@ pub struct Compiler<'a> {
     instructions: Vec<Instruction>,
     loop_stack: Vec<usize>,
     compiling_instruction: CompilingInstruction,
-    value: isize,
+    value: i64,
     cell_guarantee: Option<u8>,
 }
 
@@ -83,10 +83,10 @@ impl<'a> Compiler<'a> {
                 if self.value != 0 {
                     if self.value.is_positive() {
                         self.instructions
-                            .push(Instruction::Forward(self.value as usize));
+                            .push(Instruction::Forward(self.value as u32));
                     } else {
                         self.instructions
-                            .push(Instruction::Backward(self.value.unsigned_abs()));
+                            .push(Instruction::Backward(self.value.unsigned_abs() as u32));
                     }
                     self.cell_guarantee = None;
                 }
@@ -94,7 +94,7 @@ impl<'a> Compiler<'a> {
             CompilingInstruction::Increment => {
                 if self.value != 0 {
                     if let Some(cell_guarantee) = self.cell_guarantee {
-                        self.cell_guarantee = Some(((cell_guarantee as isize) + self.value) as u8);
+                        self.cell_guarantee = Some(((cell_guarantee as i64) + self.value) as u8);
                         self.instructions
                             .push(Instruction::SetCell(self.cell_guarantee.unwrap()));
                     } else {
@@ -164,7 +164,7 @@ impl<'a> Compiler<'a> {
         let loop_end = self.instructions.len(); // Index of loop end instruction
 
         if loop_end - loop_start - 1 == 0 {
-            self.instructions.push(Instruction::LoopEnd(loop_start + 1));
+            self.instructions.push(Instruction::LoopEnd((loop_start + 1) as u32));
             return;
         }
         if loop_end - loop_start - 1 == 1 {
@@ -190,8 +190,8 @@ impl<'a> Compiler<'a> {
                     Instruction::BackwardLoop(offset)
                 }
                 _ => {
-                    self.instructions.push(Instruction::LoopEnd(loop_start + 1));
-                    Instruction::LoopStart(loop_end + 1)
+                    self.instructions.push(Instruction::LoopEnd((loop_start + 1) as u32));
+                    Instruction::LoopStart((loop_end + 1) as u32)
                 }
             }
         } else {
@@ -269,18 +269,18 @@ impl<'a> Compiler<'a> {
                 for (offset, multiplier) in multipliers {
                     if offset.is_positive() {
                         self.instructions
-                            .push(Instruction::MultiplyForward(offset as usize, multiplier.0));
+                            .push(Instruction::MultiplyForward(offset as u32, multiplier.0));
                     } else {
                         self.instructions.push(Instruction::MultiplyBackward(
-                            offset.unsigned_abs(),
+                            offset.unsigned_abs() as u32,
                             multiplier.0,
                         ));
                     }
                 }
                 self.instructions.push(Instruction::SetCell(0));
             } else {
-                self.instructions.push(Instruction::LoopEnd(loop_start + 1));
-                self.instructions[loop_start] = Instruction::LoopStart(loop_end + 1);
+                self.instructions.push(Instruction::LoopEnd((loop_start + 1) as u32));
+                self.instructions[loop_start] = Instruction::LoopStart((loop_end + 1) as u32);
             }
         };
 
