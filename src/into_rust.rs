@@ -170,6 +170,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
             Instruction::MultiplyForward(offset, multiplier) => {
                 indented_push!("let cell = *cell!();\n");
 
+                indented_push!("if cell != Wrapping(0) {\n");
+                indent_level += 1;
+
                 indented_push!("if pointer + ");
                 push_str!(&offset.to_string());
                 push_str!(" >= memory.len() {\n");
@@ -191,9 +194,15 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                     code.push(')');
                 }
                 push_str!(";\n");
+
+                indent_level -= 1;
+                indented_push!("}\n");
             }
             Instruction::MultiplyBackward(offset, multiplier) => {
                 indented_push!("let cell = *cell!();\n");
+
+                indented_push!("if cell != Wrapping(0) {\n");
+                indent_level += 1;
 
                 indented_push!("*mut_cell!(pointer - ");
                 push_str!(&offset.to_string());
@@ -204,6 +213,9 @@ pub fn to_rust(instructions: &[Instruction]) -> String {
                     code.push(')');
                 }
                 push_str!(";\n");
+
+                indent_level -= 1;
+                indented_push!("}\n");
             }
             Instruction::ForwardLoop(offset) => {
                 indented_push!("while cell_is_not_zero!() {\n");
