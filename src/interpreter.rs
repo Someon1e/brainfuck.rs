@@ -91,12 +91,11 @@ pub fn execute(instructions: &[Instruction]) -> Vec<Wrapping<u8>> {
             }
 
             Instruction::IncrementLoop(increment) => {
-                let cell = unsafe { memory.get_unchecked_mut(pointer) };
-                if cell.0 % *increment == 0 {
-                    *cell = Wrapping(0);
-                } else {
-                    panic!("Infinite loop detected")
+                let mut cell = unsafe { *memory.get_unchecked(pointer) };
+                while cell != Wrapping(0) {
+                    cell += *increment;
                 }
+                *unsafe { memory.get_unchecked_mut(pointer) } = cell;
             }
 
             Instruction::Input => {
