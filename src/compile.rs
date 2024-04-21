@@ -2,6 +2,7 @@ use core::num::Wrapping;
 
 use crate::lexer::Token;
 
+/// An instruction.
 #[derive(Debug)]
 pub enum Instruction {
     /// Move pointer right.
@@ -23,6 +24,7 @@ pub enum Instruction {
     IncrementLoop(u8),
 
     MultiplyForward(usize, u8),
+
     MultiplyBackward(usize, u8),
 
     /// Move pointer right until cell is 0.
@@ -288,6 +290,7 @@ impl<'a> Compiler<'a> {
         self.cell_guarantee = Some(0);
     }
 
+    /// Compile into instructions.
     pub fn compile(&mut self) -> &Vec<Instruction> {
         while let Some(token) = self.tokens.next() {
             match token {
@@ -432,10 +435,7 @@ mod tests {
         );
 
         assert!(
-            !matches!(
-                compile!(",[>>++<-]")[1],
-                Instruction::MultiplyForward(..)
-            ),
+            !matches!(compile!(",[>>++<-]")[1], Instruction::MultiplyForward(..)),
             "false positive"
         );
     }
