@@ -102,7 +102,7 @@ impl<'a> Compiler<'a> {
                             Instruction::Increment(self.value as u8)
                         } else {
                             Instruction::Increment(
-                                0u8.wrapping_sub(self.value.unsigned_abs() as u8),
+                                (self.value.unsigned_abs() as u8).wrapping_neg(),
                             )
                         });
                     }
