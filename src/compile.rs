@@ -20,8 +20,10 @@ pub enum Instruction {
     /// Increment in a loop.
     IncrementLoop(u8),
 
+    /// Adds (current cell * multiplier) to cell on the right
     MultiplyForward(u32, u8),
 
+    /// Adds (current cell * multiplier) to cell on the left
     MultiplyBackward(u32, u8),
 
     /// Move pointer right until cell is 0.
