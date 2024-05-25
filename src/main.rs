@@ -38,7 +38,7 @@ fn main() {
             panic!("Invalid input")
         }
 
-        option = ask!("(A) Interpret or (B) transpile into rust? or (C) transpile into C? ");
+        option = ask!("(A) Interpret or (B) transpile into rust or (C) transpile into C? ");
         assert!(
             option == "A" || option == "B" || option == "C",
             "Invalid input"
