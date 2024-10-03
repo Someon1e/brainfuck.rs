@@ -14,16 +14,16 @@ pub enum Instruction {
     /// Add to cell.
     Increment(u8),
 
-    /// Sets cell.
+    /// Set cell.
     SetCell(u8),
 
     /// Increment in a loop.
     IncrementLoop(u8),
 
-    /// Adds (current cell * multiplier) to cell on the right
+    /// Add (current cell * multiplier) to cell on the right
     MultiplyForward(u32, u8),
 
-    /// Adds (current cell * multiplier) to cell on the left
+    /// Add (current cell * multiplier) to cell on the left
     MultiplyBackward(u32, u8),
 
     /// Move pointer right until cell is 0.
@@ -32,13 +32,13 @@ pub enum Instruction {
     /// Move pointer left until cell is 0.
     BackwardLoop(u32),
 
-    /// Jumps if cell is 0.
+    /// Jump if cell is 0.
     LoopStart(u32),
 
-    /// Jumps if cell is not 0.
+    /// Jump if cell is not 0.
     LoopEnd(u32),
 
-    /// Outputs a character.
+    /// Output a character.
     Output,
 
     /// Read a character from input.
