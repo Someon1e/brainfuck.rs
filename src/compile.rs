@@ -67,6 +67,7 @@ pub struct Compiler<'a> {
 }
 
 impl<'a> Compiler<'a> {
+    /// Creates a new compiler.
     pub fn new(tokens: impl Iterator<Item = Token> + 'a) -> Self {
         Self {
             tokens: Box::new(tokens),
@@ -103,9 +104,7 @@ impl<'a> Compiler<'a> {
                         self.instructions.push(if self.value.is_positive() {
                             Instruction::Increment(self.value as u8)
                         } else {
-                            Instruction::Increment(
-                                (self.value.unsigned_abs() as u8).wrapping_neg(),
-                            )
+                            Instruction::Increment((self.value.unsigned_abs() as u8).wrapping_neg())
                         });
                     }
                 }
