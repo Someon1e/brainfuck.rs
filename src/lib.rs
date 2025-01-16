@@ -26,4 +26,4 @@ pub mod into_c;
 pub const INITIAL_MEMORY_CAPACITY: usize = 32;
 
 /// When out of memory, increase size by this many bytes.
-pub const MEMORY_RESIZE_AMOUNT: usize = 16;
+pub const MEMORY_RESIZE_AMOUNT: usize = 24;
