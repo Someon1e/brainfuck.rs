@@ -5,6 +5,7 @@ use crate::{compile::Instruction, INITIAL_MEMORY_CAPACITY};
 
 /// Compiles instructions into C
 #[allow(clippy::too_many_lines)]
+#[must_use]
 pub fn to_c(instructions: &[Instruction]) -> String {
     let mut code = String::with_capacity(2048);
 
